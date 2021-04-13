@@ -2,10 +2,11 @@ class User:
     """Gebruikers van MobileCare"""
 
     def __init__(self, id, first, last, age, email):
+        self.id = id
         self.first = first
         self.last = last
         self.age = age
-        self.id = id
+
    
 
     @property
