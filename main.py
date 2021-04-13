@@ -38,15 +38,17 @@ def main():
             (stat1, uid) = rdr1.SelectTagSN()
             if stat1 == rdr1.OK:
                 print("Card detected at scanner #1 %s" % uidToString(uid))
-                s.send(bytes(str(uidToString(uid)), "utf-8"))
+                tagdata = uidToString(uid)
+                data = {scanner:1,tag:tagdata}
+                s.send(bytes(str(data, "utf-8"))
 
         if stat2 == rdr2.OK:
             (stat2, uid) = rdr2.SelectTagSN()
             if stat2 == rdr2.OK:
                 print("Card detected at scanner #2 %s" % uidToString(uid))
-                s.send(bytes(str(uidToString(uid)), "utf-8"))
-
-
+                tagdata = uidToString(uid)
+                data = {scanner:1,tag:tagdata}
+                s.send(bytes(str(data, "utf-8"))
 
 def do_connect():
     wlan = network.WLAN(network.STA_IF)
@@ -57,7 +59,6 @@ def do_connect():
         while not wlan.isconnected():
             pass
     print('network config:', wlan.ifconfig())
-
 
 if __name__ == "__main__":
     main()
