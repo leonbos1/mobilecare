@@ -1,8 +1,12 @@
 import socket
+import sqlite3
 
 def main():
     HOST = "192.168.178.69" 
     PORT = 4000       
+
+    conn = sqlite3.connect('sensor.db', check_same_thread=False)
+    c = conn.cursor()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
@@ -32,8 +36,11 @@ def main():
                             
                     if scanner_bool:
                         scanner += element
-                scanner= scanner[1:]
 
+                sensor_id = 1 if '1' in scanner else '2'
+
+                c.execute(f"insert into sensor_time(sensor_id) values ({sensor_id})")
+                conn.commit()
 
                 print(tag)
                 print(scanner)
