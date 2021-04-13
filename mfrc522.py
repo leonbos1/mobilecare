@@ -44,6 +44,7 @@ class MFRC522:
         self.rst.value(1)
         self.init()
 
+
     def _wreg(self, reg, val):
 
         self.cs.value(0)
