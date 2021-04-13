@@ -1,8 +1,4 @@
 import socket
-import time
-import sqlite3
-import keyboard
-
 
 def main():
     HOST = "192.168.178.69" 
