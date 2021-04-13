@@ -14,7 +14,7 @@ c.execute("""CREATE TABLE users (
 
 def insert_user(user):
 	with conn:
-		c.execute("INSERT INTO users VALUES (:id, :first, :last, :age, :email)", {'id': user.id,'first': user.first, 'last': user.last, 'age': user.age, 'email': user.email})
+		c.execute(f"INSERT INTO users  (first_name, last_name, age, email) VALUES ('{user.first}','{user.last}',{user.age},'{user.email}')")
 
 def get_users(users):
 	c.execute("SELECT * FROM users")
