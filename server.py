@@ -26,7 +26,7 @@ def main():
             print("Connected by", addr)
             while True:
                 #resetting variables
-                tag = ''
+                
                 scanner = ''
                 scanner_bool = False
                 tag_bool = True
@@ -38,21 +38,22 @@ def main():
                 print("Received data: ", message)
 
                 #converting received string to variables
-                for element in message:
-                    if tag_bool:
-                        tag += element
-                        if element == ' ':
-                            scanner_bool = True
-                            tag_bool = False
-                    if scanner_bool:
-                        scanner += element
-                        first_end = True
-                        if not previous_data:
-                            first = True
-                        previous_data = True
-                        last_data = True
+                if 'no_contact' not in message:
+                    tag = ''
+                    for element in message:
+                        if tag_bool:
+                            tag += element
+                            if element == ' ':
+                                scanner_bool = True
+                                tag_bool = False
+                        if scanner_bool:
+                            scanner += element
+                            first_end = True
+                            if not previous_data:
+                                first = True
+                            previous_data = True
+                            last_data = True
                 
-                print(scanner)
                 if '1' in scanner:
                     sensor_id = 1
                 elif '2' in scanner:
@@ -69,7 +70,8 @@ def main():
                     if last_data and not first_end:
                         end = datetime.now()
                         enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
-                        db.addtosensordata(sensor_id, datetime_string, enddatetime_string)
+                        db.addtosensordata(sensor_id, datetime_string, enddatetime_string, tag)
+                        print(f'{sensor_id, datetime_string,enddatetime_string,tag} saved to database')
                         last_data = False
                     first_end = False
 
