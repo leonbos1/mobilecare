@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 
 sensor = {}
 
-class SensorModel(db.Model):
+class SensorTime(db.Model):
     id =  db.Column(db.Integer, primary_key=True)
     sensor_id = db.Column(db.Integer)
     time_activated = db.Column(db.String)
@@ -43,10 +43,13 @@ resource_fields = {
 class Sensor(Resource):
     @marshal_with(resource_fields)
     def get(self, id):
-        result = SensorModel.query.get(id=id)
+        print(id)
+        result = SensorTime.query.filter_by(id=id).first()
+        if not result:
+            abort(404, message="Geen data gevonden met dit ID")
         return result
 
-    
+api.add_resource(Sensor, "/id/<int:id>")    
    
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='192.168.178.69', port='80', debug=True)
