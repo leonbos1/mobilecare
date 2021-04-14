@@ -43,7 +43,6 @@ resource_fields = {
 class Sensor(Resource):
     @marshal_with(resource_fields)
     def get(self, id):
-        print(id)
         result = SensorTime.query.filter_by(id=id).first()
         if not result:
             abort(404, message="Geen data gevonden met dit ID")
