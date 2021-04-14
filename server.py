@@ -60,6 +60,7 @@ def main():
                     sensor_id = 2
                         
                 if first:
+                    starttime = time.time()
                     nowtime = time.time()
                     now = datetime.now()
                     datetime_string = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -68,10 +69,12 @@ def main():
                 if scanner == '':
                     previous_data = False
                     if last_data and not first_end:
+                        endtime = time.time()
+                        activation_duration = round(endtime - starttime)-4 #-4 door afwijking door dubbele no_contact meting
                         end = datetime.now()
                         enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
-                        db.addtosensordata(sensor_id, datetime_string, enddatetime_string, tag)
-                        print(f'{sensor_id, datetime_string,enddatetime_string,tag} saved to database')
+                        db.addtosensordata(sensor_id, datetime_string, enddatetime_string, tag, activation_duration)
+                        print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
                         last_data = False
                     first_end = False
 
