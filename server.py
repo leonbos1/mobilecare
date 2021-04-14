@@ -11,6 +11,7 @@ def main():
     last_data = False
     sensor_id = 0
     previous_data = False
+    first_end = False
 
     conn = sqlite3.connect('sensor.db', check_same_thread=False)
     c = conn.cursor()
@@ -45,10 +46,12 @@ def main():
                             tag_bool = False
                     if scanner_bool:
                         scanner += element
+                        first_end = True
                         if not previous_data:
                             first = True
                         previous_data = True
                         last_data = True
+                
                 print(scanner)
                 if '1' in scanner:
                     sensor_id = 1
@@ -63,11 +66,12 @@ def main():
 
                 if scanner == '':
                     previous_data = False
-                    if last_data:
+                    if last_data and not first_end:
                         end = datetime.now()
                         enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
                         db.addtosensordata(sensor_id, datetime_string, enddatetime_string)
                         last_data = False
+                    first_end = False
 
 if __name__ == '__main__':
     main()
