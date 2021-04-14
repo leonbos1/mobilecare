@@ -9,6 +9,8 @@ def main():
     PORT = 4000       
     first = False
     last_data = False
+    sensor_id = 0
+    previous_data = False
 
     conn = sqlite3.connect('sensor.db', check_same_thread=False)
     c = conn.cursor()
@@ -27,7 +29,7 @@ def main():
                 scanner = ''
                 scanner_bool = False
                 tag_bool = True
-                previous_data = False
+                
                 
                 #receiving data 
                 data = connection.recv(1024)
@@ -47,6 +49,11 @@ def main():
                             first = True
                         previous_data = True
                         last_data = True
+                print(scanner)
+                if '1' in scanner:
+                    sensor_id = 1
+                elif '2' in scanner:
+                    sensor_id = 2
                         
                 if first:
                     nowtime = time.time()
@@ -55,7 +62,6 @@ def main():
                     first = False
 
                 if scanner == '':
-                    sensor_id = 1 if '1' in scanner else 2
                     previous_data = False
                     if last_data:
                         end = datetime.now()
