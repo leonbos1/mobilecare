@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 api = Api(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'sensor.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 
 db = SQLAlchemy(app)
 
@@ -31,7 +31,7 @@ sensor_put_args.add_argument("sensor_deactivated", type=str, help='dit is de tij
 sensor_put_args.add_argument("tag", type=str, help='dit is de tag die de sensor heeft gescand')
 sensor_put_args.add_argument("activation_duration", type=int, help='dit is de tijd in seconde dat de sensor is geactivate')
 
-resource_fields = {
+sensor_data = {
     'id': fields.Integer,
     'sensor_id': fields.Integer,
     'time_activated': fields.String,
@@ -41,14 +41,12 @@ resource_fields = {
 }
 
 class Sensor(Resource):
-    @marshal_with(resource_fields)
-    def get(self, id):
-        result = SensorTime.query.filter_by(id=id).first()
-        if not result:
-            abort(404, message="Geen data gevonden met dit ID")
+    @marshal_with(sensor_data)
+    def get(self):
+        result = SensorTime.query.all()
         return result
 
-api.add_resource(Sensor, "/id/<int:id>")    
+api.add_resource(Sensor, "/id/")    
    
 if __name__ == '__main__':
     app.run(host='192.168.178.69', port='80', debug=True)
