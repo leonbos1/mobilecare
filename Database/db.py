@@ -1,7 +1,8 @@
 import sqlite3
 from users import User
 
-conn = sqlite3.connect(':memory:')
+
+conn = sqlite3.connect('users.db')
 
 c = conn.cursor()
 
@@ -16,7 +17,7 @@ c.execute("""CREATE TABLE inlog (
 	username VARCHAR(100),
 	password VARCHAR(100),
 	userid INTEGER NOT NULL PRIMARY KEY, FOREIGN KEY(userid) REFERENCES users(id))""")
-
+conn.commit()
 def insert_user(user):
 	with conn:
 		c.execute(f"INSERT INTO users  (first_name, last_name, age, email) VALUES ('{user.first}','{user.last}',{user.age},'{user.email}')")
