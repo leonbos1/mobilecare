@@ -12,6 +12,11 @@ c.execute("""CREATE TABLE users (
 	age INTEGER(3),
 	email VARCHAR(30))""")
 
+c.execute("""CREATE TABLE inlog (
+	username VARCHAR(100),
+	password VARCHAR(100),
+	userid INTEGER NOT NULL PRIMARY KEY, FOREIGN KEY(userid) REFERENCES users(id))""")
+
 def insert_user(user):
 	with conn:
 		c.execute(f"INSERT INTO users  (first_name, last_name, age, email) VALUES ('{user.first}','{user.last}',{user.age},'{user.email}')")
