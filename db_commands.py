@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('sensor.db', check_same_thread=False)
+conn = sqlite3.connect('database.db', check_same_thread=False)
 c = conn.cursor()
 
 def addtosensordata(id, timeactivated, timedeactivated, tag, activation_duration):

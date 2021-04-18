@@ -13,7 +13,7 @@ def main():
     previous_data = False
     first_end = False
 
-    conn = sqlite3.connect('sensor.db', check_same_thread=False)
+    conn = sqlite3.connect('database.db', check_same_thread=False)
     c = conn.cursor()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
