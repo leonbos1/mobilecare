@@ -1,16 +1,19 @@
 import requests
 
-url = 'http://127.0.0.1:5000/sensordata/'
+#url = 'http://127.0.0.1:5000/sensordata/'
+#url = 'http://127.0.0.1:5000/verzorgers/'
+url = 'http://127.0.0.1:5000/verzorgercredentials/'
 
+#data = {'verzorger_id' : 1,'username' : 'testusername','password' : 'testpassword'}
+
+#data = {'verzorger_id' : 1,'username' : 'testusername','password' : 'testpassword'}
 
 data = {
-    "sensor_id": 2,
-    "time_activated": "14/04/2021 13:43:11",
-    "time_deactivated": "14/04/2021 13:43:19",
-    "tag": "1BBD2EE2 ",
-    "activation_duration": 4
+    'verzorger_id' : 1,
+    'username' : 'testusername',
+    'password' : 'testpassword'
 }
 
 response = requests.put(url, data)
 
-#print(response.json())
+print(response.json())

@@ -32,6 +32,15 @@ class Verzorgers(db.Model):
     def __repr__(self):
         return f'Verzorger(id={id}, firstname={firstname}, lastname={lastname}, email={email}'
 
+class Verzorgers_credentials(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    verzorger_id = db.Column(db.Integer)
+    username = db.Column(db.String)
+    password = db.Column(db.String)
+
+    def __repr__(self):
+        return f'Verzorgers_credentials(id={id}, verzorger_id = {verzorger_id}, username = {username}, password = {password}'
+
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
 sensor_put_args.add_argument("sensor_id", type=int, help="Dit is het id van de sensor die iets heeft gescand")
@@ -45,6 +54,10 @@ verzorger_put_args.add_argument("firstname", type=str, help="dit is de voornaam 
 verzorger_put_args.add_argument("lastname", type=str, help='dit is de achternaam van een verzorger')
 verzorger_put_args.add_argument("email", type=str, help='dit is de email van een verzorger')
 
+verzorger_credential_put_args = reqparse.RequestParser()
+verzorger_credential_put_args.add_argument("verzorger_id", type=int, help="dit is het id van een verzorger")
+verzorger_credential_put_args.add_argument("username", type=str, help='dit is de username van een verzorger')
+verzorger_credential_put_args.add_argument("password", type=str, help='dit is de password van een verzorger')
 
 sensor_data = {
     'id': fields.Integer,
@@ -60,6 +73,13 @@ verzorger_data = {
     'firstname' : fields.String,
     'lastname' : fields.String,
     'email' : fields.String
+}
+
+verzorger_credential_data = {
+    'id' : fields.Integer,
+    'verzorger_id' : fields.Integer,
+    'username' : fields.String,
+    'password' : fields.String
 }
 
 class Sensor(Resource):
@@ -91,8 +111,25 @@ class Verzorger(Resource):
         db.session.commit()
         return data, 201
 
+class VerzorgerCredentials(Resource):
+    @marshal_with(verzorger_credential_data)
+    def get(self):
+        result = Verzorgers_credentials.query.all()
+        return result
+
+    @marshal_with(verzorger_credential_data)
+    def put(self):
+        args = verzorger_credential_put_args.parse_args()
+        data = Verzorgers_credentials(verzorger_id=args['verzorger_id'], username=args['username'], password=args['password'])
+        db.session.add(data)
+        db.session.commit()
+        return data, 201
+
+
 api.add_resource(Sensor, "/sensordata/")    
 api.add_resource(Verzorger, "/verzorgers/")
-   
+api.add_resource(VerzorgerCredentials, "/verzorgercredentials/")
+
+
 if __name__ == '__main__':
     app.run(port='5000', debug=True)

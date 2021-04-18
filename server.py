@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 import time
 import db_commands as db
+import requests
 
 def main():
     HOST = "192.168.178.69" 
@@ -12,9 +13,8 @@ def main():
     sensor_id = 0
     previous_data = False
     first_end = False
+    url = 'http://127.0.0.1:5000/sensordata/'
 
-    conn = sqlite3.connect('database.db', check_same_thread=False)
-    c = conn.cursor()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
@@ -26,17 +26,13 @@ def main():
             print("Connected by", addr)
             while True:
                 #resetting variables
-                
                 scanner = ''
                 scanner_bool = False
                 tag_bool = True
-                
-                
                 #receiving data 
                 data = connection.recv(1024)
                 message = data.decode("utf-8")
                 print("Received data: ", message)
-
                 #converting received string to variables
                 if 'no_contact' not in message:
                     tag = ''
@@ -73,7 +69,8 @@ def main():
                         activation_duration = round(endtime - starttime)-4 #-4 door afwijking door dubbele no_contact meting
                         end = datetime.now()
                         enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
-                        db.addtosensordata(sensor_id, datetime_string, enddatetime_string, tag, activation_duration)
+                        data = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
+                        response = requests.put(url, data)
                         print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
                         last_data = False
                     first_end = False
