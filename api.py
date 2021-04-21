@@ -1,12 +1,20 @@
-from flask import Flask, request
+from flask import Flask, request, make_response, g, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
 import os
+import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+import random, string
+import jwt
+import datetime
+
 
 app = Flask(__name__)
 api = Api(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+app.config['SECRET_KEY'] = 'secretkey'
 
 db = SQLAlchemy(app)
 
@@ -23,23 +31,18 @@ class SensorTime(db.Model):
     def __repr__(self):
         return f"Sensor(id={id}, sensor_id={sensor_id}, time_activated={time_activated}, time_deactivated={time_deactivated}, tag={tag}, activation_duration={activation_duration})"
 
+
+
 class Verzorgers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String)
     lastname = db.Column(db.String)
     email = db.Column(db.String)
-
-    def __repr__(self):
-        return f'Verzorger(id={id}, firstname={firstname}, lastname={lastname}, email={email}'
-
-class Verzorgers_credentials(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    verzorger_id = db.Column(db.Integer)
-    username = db.Column(db.String)
     password = db.Column(db.String)
 
     def __repr__(self):
-        return f'Verzorgers_credentials(id={id}, verzorger_id = {verzorger_id}, username = {username}, password = {password}'
+        return f'Verzorger(id={id}, firstname={firstname}, lastname={lastname}, email={email}, password={password}'
+
 
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
@@ -53,11 +56,8 @@ verzorger_put_args = reqparse.RequestParser()
 verzorger_put_args.add_argument("firstname", type=str, help="dit is de voornaam van een verzorger")
 verzorger_put_args.add_argument("lastname", type=str, help='dit is de achternaam van een verzorger')
 verzorger_put_args.add_argument("email", type=str, help='dit is de email van een verzorger')
+verzorger_put_args.add_argument("password", type=str, help='dit is de password van een verzorger')
 
-verzorger_credential_put_args = reqparse.RequestParser()
-verzorger_credential_put_args.add_argument("verzorger_id", type=int, help="dit is het id van een verzorger")
-verzorger_credential_put_args.add_argument("username", type=str, help='dit is de username van een verzorger')
-verzorger_credential_put_args.add_argument("password", type=str, help='dit is de password van een verzorger')
 
 sensor_data = {
     'id': fields.Integer,
@@ -72,15 +72,10 @@ verzorger_data = {
     'id' : fields.Integer,
     'firstname' : fields.String,
     'lastname' : fields.String,
-    'email' : fields.String
-}
-
-verzorger_credential_data = {
-    'id' : fields.Integer,
-    'verzorger_id' : fields.Integer,
-    'username' : fields.String,
+    'email' : fields.String,
     'password' : fields.String
 }
+
 
 class Sensor(Resource):
     @marshal_with(sensor_data)
@@ -96,7 +91,6 @@ class Sensor(Resource):
         db.session.commit()
         return data, 201
 
-
 class Verzorger(Resource):
     @marshal_with(verzorger_data)
     def get(self):
@@ -106,30 +100,30 @@ class Verzorger(Resource):
     @marshal_with(verzorger_data)
     def put(self):
         args = verzorger_put_args.parse_args()
-        data = Verzorgers(firstname=args['firstname'], lastname=args['lastname'], email=args['email'])
-        db.session.add(data)
-        db.session.commit()
-        return data, 201
-
-class VerzorgerCredentials(Resource):
-    @marshal_with(verzorger_credential_data)
-    def get(self):
-        result = Verzorgers_credentials.query.all()
-        return result
-
-    @marshal_with(verzorger_credential_data)
-    def put(self):
-        args = verzorger_credential_put_args.parse_args()
-        data = Verzorgers_credentials(verzorger_id=args['verzorger_id'], username=args['username'], password=args['password'])
+        data = Verzorgers(firstname=args['firstname'], lastname=args['lastname'], email=args['email'], password=generate_password_hash(args['password'], method='sha256'))
         db.session.add(data)
         db.session.commit()
         return data, 201
 
 
+@app.route('/login')
+def login():
+    auth = request.authorization
+    email = auth.username
+    password = auth.password
+
+    if auth:
+        print(Verzorgers.query.filter_by(email = email).first())
+        
+        token = jwt.encode({'verzorger': auth.username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+
+        return jsonify({'token' : token})
+    
+    return make_response("Could not verify", 401, {'WWW-Authenticate' : 'Basic realm="Login Required"'})
+    
 api.add_resource(Sensor, "/sensordata/")    
 api.add_resource(Verzorger, "/verzorgers/")
-api.add_resource(VerzorgerCredentials, "/verzorgercredentials/")
 
 
 if __name__ == '__main__':
-    app.run(port='5000', debug=True)
+    app.run(host='192.168.178.69', port='80', debug=True)
