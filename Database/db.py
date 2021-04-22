@@ -17,7 +17,9 @@ c.execute("""CREATE TABLE inlog (
 	username VARCHAR(100),
 	password VARCHAR(100),
 	userid INTEGER NOT NULL PRIMARY KEY, FOREIGN KEY(userid) REFERENCES users(id))""")
+
 conn.commit()
+
 def insert_user(user):
 	with conn:
 		c.execute(f"INSERT INTO users  (first_name, last_name, age, email) VALUES ('{user.first}','{user.last}',{user.age},'{user.email}')")
@@ -61,3 +63,25 @@ users = get_users('all')
 print(users)
 
 conn.close()
+
+
+# Voor database.db
+#CREATE TABLE patienten (
+#	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#	first_name VARCHAR(30),
+#	last_name VARCHAR(30),
+#	age INTEGER(3),
+#	email VARCHAR(30),
+#	tag VARCHAR(16))
+
+#INSERT INTO patienten (first_name, last_name, age, email, tag)
+#VALUES ('Peter', 'Jansen', '78', 'peterj78@mail.com', '1BBD2EE2');
+
+#INSERT INTO patienten (first_name, last_name, age, email, tag)
+#VALUES ('Youri', 'Bakker', '88', 'yourib88@mail.com', '1B009727');
+
+#INSERT INTO patienten (first_name, last_name, age, email, tag)
+#VALUES ('Kevin', 'Jonker', '76', 'kevinj76@mail.com', '8901F3B6');
+
+#INSERT INTO patienten (first_name, last_name, age, email, tag)
+#VALUES ('Iris', 'Mob', '75', 'irism75@mail.com', 'AB399C65');
