@@ -58,6 +58,10 @@ verzorger_put_args.add_argument("lastname", type=str, help='dit is de achternaam
 verzorger_put_args.add_argument("email", type=str, help='dit is de email van een verzorger')
 verzorger_put_args.add_argument("password", type=str, help='dit is de password van een verzorger')
 
+verzorger_login_args = reqparse.RequestParser()
+verzorger_login_args.add_argument("email", type=str, help='dit is de email van een verzorger')
+verzorger_login_args.add_argument("password", type=str, help='dit is de password van een verzorger')
+
 
 sensor_data = {
     'id': fields.Integer,
@@ -72,6 +76,11 @@ verzorger_data = {
     'id' : fields.Integer,
     'firstname' : fields.String,
     'lastname' : fields.String,
+    'email' : fields.String,
+    'password' : fields.String
+}
+
+verzorger_login = {
     'email' : fields.String,
     'password' : fields.String
 }
@@ -105,25 +114,19 @@ class Verzorger(Resource):
         db.session.commit()
         return data, 201
 
+class VerzorgerLogin(Resource):
+    @marshal_with(verzorger_login)
+    def post(self):
+        args = verzorger_login_args.parse_args()
+        email = args['email']
+        password = args['password']
+        print(email, password)
 
-@app.route('/login')
-def login():
-    auth = request.authorization
-    email = auth.username
-    password = auth.password
-
-    if auth:
-        print(Verzorgers.query.filter_by(email = email).first())
-        
-        token = jwt.encode({'verzorger': auth.username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-
-        return jsonify({'token' : token})
-    
-    return make_response("Could not verify", 401, {'WWW-Authenticate' : 'Basic realm="Login Required"'})
     
 api.add_resource(Sensor, "/sensordata/")    
 api.add_resource(Verzorger, "/verzorgers/")
+api.add_resource(VerzorgerLogin, "/login/")
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.178.69', port='80', debug=True)
+    app.run(debug=True)
