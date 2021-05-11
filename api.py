@@ -32,7 +32,6 @@ class SensorTime(db.Model):
         return f"Sensor(id={id}, sensor_id={sensor_id}, time_activated={time_activated}, time_deactivated={time_deactivated}, tag={tag}, activation_duration={activation_duration})"
 
 
-
 class Verzorgers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String)
@@ -85,7 +84,6 @@ verzorger_login = {
     'password' : fields.String
 }
 
-
 class Sensor(Resource):
     @marshal_with(sensor_data)
     def get(self):
@@ -121,7 +119,6 @@ class VerzorgerLogin(Resource):
         email = args['email']
         password = args['password']
         print(email, password)
-
     
 api.add_resource(Sensor, "/sensordata/")    
 api.add_resource(Verzorger, "/verzorgers/")
@@ -129,4 +126,4 @@ api.add_resource(VerzorgerLogin, "/login/")
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='192.168.178.69', port=80,debug=True)

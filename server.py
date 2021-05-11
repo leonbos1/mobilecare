@@ -2,7 +2,6 @@ import socket
 import sqlite3
 from datetime import datetime
 import time
-import db_commands as db
 import requests
 
 def main():
@@ -13,7 +12,7 @@ def main():
     sensor_id = 0
     previous_data = False
     first_end = False
-    url = 'http://127.0.0.1:5000/sensordata/'
+    url = 'http://192.168.178.69:80/sensordata/'
 
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
