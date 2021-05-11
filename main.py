@@ -20,6 +20,7 @@ def main():
     print('Socket created')
     s.connect((HOST, PORT))
     print('Connection made')
+<<<<<<< HEAD
 
     while True:
         scan1 = scanner1()
@@ -110,6 +111,30 @@ def scanner4():
     else:
         return 'no_contact'
 """
+=======
+
+    if uname()[0] == 'esp32':
+        rdr1 = mfrc522.MFRC522(sck=18, mosi=23, miso=19, rst=0, cs=22)
+        rdr2 = mfrc522.MFRC522(sck=18, mosi=23, miso=19, rst=0, cs=15)
+
+    while True:
+        (stat1, tag_type1) = rdr1.request(rdr1.REQIDL)
+        (stat2, tag_type2) = rdr2.request(rdr2.REQIDL)
+        if stat1 == rdr1.OK:
+            (stat1, uid) = rdr1.SelectTagSN()
+            if stat1 == rdr1.OK:
+                print("Card detected at scanner #1 %s" % uidToString(uid))
+                data = str(uidToString(uid)) + ' Scanner_1'
+                s.send(bytes(data, "utf-8"))
+
+        if stat2 == rdr2.OK:
+            (stat2, uid) = rdr2.SelectTagSN()
+            if stat2 == rdr2.OK:
+                print("Card detected at scanner #2 %s" % uidToString(uid))
+                data = str(uidToString(uid)) + ' Scanner_2'
+                s.send(bytes(data, "utf-8"))
+
+>>>>>>> parent of 0ad35d1 (update)
 def do_connect():
 
     wlan = network.WLAN(network.STA_IF)
