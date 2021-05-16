@@ -78,7 +78,7 @@ def threaded_client(connection): #door leon
             previous_data = False
             if last_data and not first_end:
                 endtime = time.time()
-                activation_duration = round(endtime - starttime)-4 #-4 door afwijking door dubbele no_contact meting
+                activation_duration = round(endtime - starttime)-4 
                 end = datetime.now()
                 enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
                 data = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
