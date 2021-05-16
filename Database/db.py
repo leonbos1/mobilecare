@@ -51,7 +51,7 @@ user_1 = User("user.id", "Kevin", "Jonker", "69", "user.email")
 
 insert_user(user_1)
 
-#update_age(user_1, 89)
+update_age(user_1, 89)
 
 #users = get_users_by_name('Kevin')
 #print(users)
@@ -85,3 +85,7 @@ conn.close()
 
 #INSERT INTO patienten (first_name, last_name, age, email, tag)
 #VALUES ('Iris', 'Mob', '75', 'irism75@mail.com', 'AB399C65');
+
+create role rZorgverlening;
+grant all on verzorgers to rZorgverlening;
+grant rZorgverlening to ......;
