@@ -3,11 +3,8 @@ from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
 import os
-import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
-import random, string
-import jwt
-import datetime
+import re
 
 
 app = Flask(__name__)
@@ -15,7 +12,7 @@ api = Api(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SECRET_KEY'] = 'secretkey'
-
+regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
 db = SQLAlchemy(app)
 
 sensor = {}
@@ -29,7 +26,7 @@ class SensorTime(db.Model): #door leon
     activation_duration = db.Column(db.Integer)
 
     def __repr__(self):
-        return f"Sensor(id={id}, sensor_id={sensor_id}, time_activated={time_activated}, time_deactivated={time_deactivated}, tag={tag}, activation_duration={activation_duration})"
+        return f"Sensor(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
 
 
 class Verzorgers(db.Model): #door leon
@@ -40,7 +37,7 @@ class Verzorgers(db.Model): #door leon
     password = db.Column(db.String)
 
     def __repr__(self):
-        return f'Verzorger(id={id}, firstname={firstname}, lastname={lastname}, email={email}, password={password}'
+        return f'Verzorger(id={self.id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password})'
 
 #door leon
 sensor_put_args = reqparse.RequestParser()
@@ -107,6 +104,13 @@ class Verzorger(Resource):
     @marshal_with(verzorger_data)
     def put(self):
         args = verzorger_put_args.parse_args()
+        email = args['email']
+        email_result = Verzorgers.query.filter_by(email=email).first()
+        if email_result != None:
+            abort(401, message = 'Email is already taken')
+        if self.check_mail(email) != 'Valid':
+            abort(401, message = 'Invalid email')
+
         password = args['password']
         if len(password) < 10:
             abort(401, message = 'Password is too short')
@@ -129,6 +133,11 @@ class Verzorger(Resource):
         db.session.commit()
         return data, 201
 
+    def check_mail(self, email):
+        if(re.search(regex, email)):
+            return 'Valid'
+        return 'Invalid'
+
 #door leon
 class VerzorgerLogin(Resource):
     @marshal_with(verzorger_login)
@@ -145,3 +154,5 @@ api.add_resource(VerzorgerLogin, "/login/")
 
 if __name__ == '__main__':
     app.run(host='192.168.178.69', port=80,debug=True)
+
+

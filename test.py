@@ -41,10 +41,10 @@ new_activation_duration = last_sensordata[5]
 
 
 #-----<   verzorger data test
-firstname = 'aaaa'
-lastname = 'aaaa'
-email = 'aaaa'
-password = 'aaaaa$A11324'
+firstname = 'Anna'
+lastname = 'Bakhuizen'
+email = 'anna.bakhuizen@gmail.com'
+password = 'AnnaBakhuizen@19'
 
 
 verzorger_data = {
@@ -54,8 +54,38 @@ verzorger_data = {
     'password' : password
 }
 
-r = requests.put(verzorgers_url, verzorger_data)
-print(r.text)
+r1 = requests.put(verzorgers_url, verzorger_data)
+
+
+firstname = 'Henk'
+lastname = 'Visscher'
+email = 'henk.visscher@gmail.com'
+password = 'zwakwachtwoord'
+
+
+verzorger_data = {
+    'firstname' : firstname,
+    'lastname' : lastname,
+    'email' : email,
+    'password' : password
+}
+
+r2 = requests.put(verzorgers_url, verzorger_data)
+
+firstname = 'Henk'
+lastname = 'Visscher'
+email = 'dit_is_geen_valide_email@'
+password = 'DitIsEENsterkwachtwoord2001!@#'
+
+
+verzorger_data = {
+    'firstname' : firstname,
+    'lastname' : lastname,
+    'email' : email,
+    'password' : password
+}
+
+r3 = requests.put(verzorgers_url, verzorger_data)
 
 #----->
 
@@ -79,6 +109,14 @@ if tag != new_tag:
 if activation_duration != new_activation_duration:
     print(f"Activation duration failed, should be {activation_duration} but is {new_activation_duration}")
     passed = False
+
+if r1.status_code != 401:
+    print("Verzorger r1 test failed, data should not be inserted because if double email usage")
+if r2.status_code != 401:
+    print("Verzorger r2 test failed, weak passwords should be rejected")
+if r3.status_code != 401:
+    print("Verzorger r3 test failed, ")
+
 
 if passed:
     print("All tests passed succesfully")
