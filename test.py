@@ -46,7 +46,6 @@ lastname = 'Bakhuizen'
 email = 'anna.bakhuizen@gmail.com'
 password = 'AnnaBakhuizen@19'
 
-
 verzorger_data = {
     'firstname' : firstname,
     'lastname' : lastname,
@@ -55,7 +54,6 @@ verzorger_data = {
 }
 
 r1 = requests.put(verzorgers_url, verzorger_data)
-
 
 firstname = 'Henk'
 lastname = 'Visscher'
@@ -111,12 +109,14 @@ if activation_duration != new_activation_duration:
     passed = False
 
 if r1.status_code != 401:
-    print("Verzorger r1 test failed, data should not be inserted because if double email usage")
+    print("Verzorger r1 test failed, existing emails should be rejected")
+    passed = False
 if r2.status_code != 401:
     print("Verzorger r2 test failed, weak passwords should be rejected")
+    passed = False
 if r3.status_code != 401:
-    print("Verzorger r3 test failed, ")
-
+    print("Verzorger r3 test failed, invalid emails should be rejected")
+    passed = False
 
 if passed:
     print("All tests passed succesfully")
