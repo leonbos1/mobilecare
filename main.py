@@ -13,7 +13,7 @@ def uidToString(uid):
 PORT = 4000
 HOST = "192.168.178.69"
 
-def main():
+def main(): #door leon
     do_connect()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print('Socket created')
@@ -42,7 +42,7 @@ def main():
         else:
             s.send(bytes('no_contact', "utf-8"))
 
-def do_connect():
+def do_connect(): #door leon
 
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)

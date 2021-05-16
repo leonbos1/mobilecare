@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 
 sensor = {}
 
-class SensorTime(db.Model):
+class SensorTime(db.Model): #door leon
     id =  db.Column(db.Integer, primary_key=True)
     sensor_id = db.Column(db.Integer)
     time_activated = db.Column(db.String)
@@ -32,7 +32,7 @@ class SensorTime(db.Model):
         return f"Sensor(id={id}, sensor_id={sensor_id}, time_activated={time_activated}, time_deactivated={time_deactivated}, tag={tag}, activation_duration={activation_duration})"
 
 
-class Verzorgers(db.Model):
+class Verzorgers(db.Model): #door leon
     id = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String)
     lastname = db.Column(db.String)
@@ -42,7 +42,7 @@ class Verzorgers(db.Model):
     def __repr__(self):
         return f'Verzorger(id={id}, firstname={firstname}, lastname={lastname}, email={email}, password={password}'
 
-
+#door leon
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
 sensor_put_args.add_argument("sensor_id", type=int, help="Dit is het id van de sensor die iets heeft gescand")
@@ -61,7 +61,7 @@ verzorger_login_args = reqparse.RequestParser()
 verzorger_login_args.add_argument("email", type=str, help='dit is de email van een verzorger')
 verzorger_login_args.add_argument("password", type=str, help='dit is de password van een verzorger')
 
-
+#door leon
 sensor_data = {
     'id': fields.Integer,
     'sensor_id': fields.Integer,
@@ -70,7 +70,7 @@ sensor_data = {
     'tag': fields.String,
     'activation_duration': fields.Integer
 }
-
+#door leon
 verzorger_data = {
     'id' : fields.Integer,
     'firstname' : fields.String,
@@ -78,12 +78,12 @@ verzorger_data = {
     'email' : fields.String,
     'password' : fields.String
 }
-
+#door leon
 verzorger_login = {
     'email' : fields.String,
     'password' : fields.String
 }
-
+#door leon
 class Sensor(Resource):
     @marshal_with(sensor_data)
     def get(self):
@@ -97,7 +97,7 @@ class Sensor(Resource):
         db.session.add(data)
         db.session.commit()
         return data, 201
-
+#door leon
 class Verzorger(Resource):
     @marshal_with(verzorger_data)
     def get(self):
@@ -111,7 +111,7 @@ class Verzorger(Resource):
         db.session.add(data)
         db.session.commit()
         return data, 201
-
+#door leon
 class VerzorgerLogin(Resource):
     @marshal_with(verzorger_login)
     def post(self):

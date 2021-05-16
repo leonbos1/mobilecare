@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 import requests
 
-def main():
+def main():  #door leon
     HOST = "192.168.178.69" 
     PORT = 4000  
     threadcount = 0 
@@ -26,7 +26,7 @@ def main():
         print('Thread Number: ' + str(threadcount))
     serversocket.close()            
 
-def threaded_client(connection):
+def threaded_client(connection): #door leon
     first = True
     last_data = False
     sensor_id = 0
