@@ -107,10 +107,28 @@ class Verzorger(Resource):
     @marshal_with(verzorger_data)
     def put(self):
         args = verzorger_put_args.parse_args()
+        password = args['password']
+        if len(password) < 10:
+            abort(401, message = 'Password is too short')
+        weird_char = False
+        number = False
+        hoofdletter = False
+        for element in password:
+            if element in '~!@#$%^&*()_+=-,.<>/?;:"':
+                weird_char = True
+            if element in '0123456789':
+                number = True
+            if element in 'QWERTYUIOPASDFGHJKLZXCVBNM':
+                hoofdletter = True
+        if not weird_char or not number or not hoofdletter:
+            abort(401, message = 'Password does not meet security requirements')
+            
+
         data = Verzorgers(firstname=args['firstname'], lastname=args['lastname'], email=args['email'], password=generate_password_hash(args['password'], method='sha256'))
         db.session.add(data)
         db.session.commit()
         return data, 201
+
 #door leon
 class VerzorgerLogin(Resource):
     @marshal_with(verzorger_login)

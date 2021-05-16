@@ -7,13 +7,8 @@ sensor_url = 'http://ronleon.nl/sensordata/'
 verzorgers_url = 'http://ronleon.nl/verzorgers/'
 login_url = 'http://ronleon.nl/login/'
 
-#data = {'verzorger_id' : 1, 'username' : 'testusername', 'password' : 'testpassword'}
 
-#data = {    'email' : 'leonbos@mail.com',    'password' : 'test123'}
-
-#response = requests.post(url, data)
-
-
+#-----<   Sensor data test
 sensor_id = 1
 datetime_string = '14/05/2021 14:16:48'
 starttime = 1621161849
@@ -22,18 +17,18 @@ endtime = 1621161866
 tag = 'EF9VRF'
 activation_duration = round(endtime - starttime)
 
-data = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
+sensordata = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
 
-#requests.put(sensor_url, data)
+requests.put(sensor_url, sensordata)
 
 conn = sqlite3.connect('database.db')
 cursor = conn.cursor()
 
 last_id = cursor.execute('select max(id) from sensor_time').fetchone()[0]
 last_sensordata = cursor.execute(f'select * from sensor_time where id = {last_id}').fetchall()[0]
+conn.execute(f'delete from sensor_time where id = {last_id}')
+conn.commit()
 conn.close()
-
-print(last_sensordata)
 
 new_id = last_sensordata[0]
 new_sensor_id = last_sensordata[1]
@@ -42,14 +37,51 @@ new_time_deactivated = last_sensordata[3]
 new_tag = last_sensordata[4]
 new_activation_duration = last_sensordata[5]
 
+#----->
 
-assert last_id == new_id
-assert sensor_id == new_sensor_id
-assert datetime_string == new_time_activated
-assert enddatetime_string == new_time_deactivated
-assert tag == new_tag
-assert activation_duration == new_activation_duration
 
+#-----<   verzorger data test
+firstname = 'aaaa'
+lastname = 'aaaa'
+email = 'aaaa'
+password = 'aaaaa$A11324'
+
+
+verzorger_data = {
+    'firstname' : firstname,
+    'lastname' : lastname,
+    'email' : email,
+    'password' : password
+}
+
+r = requests.put(verzorgers_url, verzorger_data)
+print(r.text)
+
+#----->
+
+passed = True
+
+if last_id != new_id:
+    print(f"Id failed, id should be {last_id} but is {new_id}")
+    passed = False
+if sensor_id != new_sensor_id:
+    print(f"Sensor_id failed, sensor_id should be {sensor_id} but is {new_sensor_id}")
+    passed = False
+if datetime_string != new_time_activated:
+    print(f"Time activated failed, time_activated should be {datetime_string} but is {new_time_activated}")
+    passed = False
+if enddatetime_string != new_time_deactivated:
+    print(f"Time deactivated failed, endtime should be {enddatetime_string} but is {new_time_deactivated}")
+    passed = False
+if tag != new_tag:
+    print(f"Tag failed, tag should be {tag} but is {new_tag}")
+    passed = False
+if activation_duration != new_activation_duration:
+    print(f"Activation duration failed, should be {activation_duration} but is {new_activation_duration}")
+    passed = False
+
+if passed:
+    print("All tests passed succesfully")
 
 
 
