@@ -3,9 +3,9 @@ import requests
 import time
 import sqlite3
 
-sensor_url = 'http://ronleon.nl/sensordata/'
-verzorgers_url = 'http://ronleon.nl/verzorgers/'
-login_url = 'http://ronleon.nl/login/'
+sensor_url = 'http://ronleon.nl/sensordata'
+verzorgers_url = 'http://ronleon.nl/users'
+login_url = 'http://ronleon.nl/login'
 
 
 #-----<   Sensor data test
@@ -45,46 +45,48 @@ firstname = 'Anna'
 lastname = 'Bakhuizen'
 email = 'anna.bakhuizen@gmail.com'
 password = 'AnnaBakhuizen@19'
+role = 'verzorger'
 
-verzorger_data = {
-    'firstname' : firstname,
-    'lastname' : lastname,
-    'email' : email,
-    'password' : password
+data = {
+    'email': {email},
+    'firstname': {firstname},
+    'lastname': {lastname},
+    'password': {password},
+    'role': {role}
 }
 
-r1 = requests.put(verzorgers_url, verzorger_data)
+r1 = requests.put(verzorgers_url, data)
 
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'henk.visscher@gmail.com'
 password = 'zwakwachtwoord'
+role = 'verzorger'
 
-
-verzorger_data = {
-    'firstname' : firstname,
-    'lastname' : lastname,
-    'email' : email,
-    'password' : password
+data = {
+    'email': {email},
+    'firstname': {firstname},
+    'lastname': {lastname},
+    'password': {password},
+    'role': {role}
 }
 
-r2 = requests.put(verzorgers_url, verzorger_data)
+r2 = requests.put(verzorgers_url, data)
 
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'dit_is_geen_valide_email@'
 password = 'DitIsEENsterkwachtwoord2001!@#'
+role = 'verzorger'
 
-
-verzorger_data = {
-    'firstname' : firstname,
-    'lastname' : lastname,
-    'email' : email,
-    'password' : password
+data = {
+    'email': {email},
+    'firstname': {firstname},
+    'lastname': {lastname},
+    'password': {password},
+    'role': {role}
 }
-
-r3 = requests.put(verzorgers_url, verzorger_data)
-
+r3 = requests.put(verzorgers_url, data)
 #----->
 
 passed = True
@@ -108,14 +110,14 @@ if activation_duration != new_activation_duration:
     print(f"Activation duration failed, should be {activation_duration} but is {new_activation_duration}")
     passed = False
 
-if r1.status_code != 401:
-    print("Verzorger r1 test failed, existing emails should be rejected")
+if r1.status_code == 201:
+    print("Verzorger r1 test failed")
     passed = False
-if r2.status_code != 401:
-    print("Verzorger r2 test failed, weak passwords should be rejected")
+if r2.status_code == 201:
+    print("Verzorger r2 test failed")
     passed = False
-if r3.status_code != 401:
-    print("Verzorger r3 test failed, invalid emails should be rejected")
+if r3.status_code == 201:
+    print("Verzorger r3 test failed")
     passed = False
 
 if passed:

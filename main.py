@@ -28,16 +28,16 @@ def main(): #door leon
         if stat1 == rdr1.OK:
             (stat1, uid) = rdr1.SelectTagSN()
             if stat1 == rdr1.OK:
-                print("Card detected at scanner #3 %s" % uidToString(uid))
-                data = str(uidToString(uid)) + ' Scanner_3'
+                print("Card detected at scanner #1 %s" % uidToString(uid))
+                data = str(uidToString(uid)) + ' Scanner_1'
                 s.send(bytes(data, "utf-8"))
 
 
         elif stat2 == rdr2.OK:
             (stat2, uid) = rdr2.SelectTagSN()
             if stat2 == rdr2.OK:
-                print("Card detected at scanner #4 %s" % uidToString(uid))
-                data = str(uidToString(uid)) + ' Scanner_4'
+                print("Card detected at scanner #2 %s" % uidToString(uid))
+                data = str(uidToString(uid)) + ' Scanner_2'
                 s.send(bytes(data, "utf-8"))
         else:
             s.send(bytes('no_contact', "utf-8"))
