@@ -32,7 +32,7 @@ def threaded_client(connection): #door leon
     sensor_id = 0
     previous_data = False
     first_end = False
-    url = 'http://192.168.178.69:80/sensordata'
+    url = 'http://192.168.178.69:80/sensordata/'
     while True:
         scanner = ''
         scanner_bool = False
@@ -83,15 +83,10 @@ def threaded_client(connection): #door leon
                 enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
                 data = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
                 response = requests.put(url, data)
-                if response.status_code == 201:
-                    print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
-                else:
-                    print("Failed to save data")
+                print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
                 last_data = False
             first_end = False
     connection.close()
 
 if __name__ == '__main__':
     main()
-
-    
