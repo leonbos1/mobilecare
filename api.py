@@ -52,7 +52,6 @@ class Users(db.Model): #door leon
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-
         token = None
 
         if 'x-access-tokens' in request.headers:
@@ -67,10 +66,21 @@ def token_required(f):
         except:
             abort(401)
 
-        return f(*args, **kwargs)
+        return f(current_user, *args, **kwargs)
     return decorator
 
 
+def admin_required(f):
+    @wraps(f)
+    @token_required
+    def check_admin(current_user, *args, **kwargs):
+        if current_user.role == 'admin':
+            pass
+        else:
+            abort(401)
+        return f(*args, **kwargs)
+
+    return check_admin
 #door leon
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
@@ -144,11 +154,14 @@ class User(Resource):
 
     @marshal_with(user_data)
     @token_required
-    def get(self):
+    @admin_required
+    def get(self, current_user):
         result = Users.query.all()
         return result
 
-    def post(self):
+    @token_required
+    @admin_required
+    def post(self, current_user):
         args = request.get_json(force=True)
         if self.v.validate(args):
             email = args['email']
