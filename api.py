@@ -44,7 +44,7 @@ class Users(db.Model): #door leon
     email = db.Column(db.String)
     password = db.Column(db.String)
     role = db.Column(db.String)
-
+    
     def __repr__(self):
         return f'Gebruiker(id={self.id}, public_id={self.public_id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password}), role={self.role}'
 
@@ -163,12 +163,12 @@ class User(Resource):
     @admin_required
     def post(self, current_user):
         args = request.get_json(force=True)
-        if self.v.validate(args):
+        if current_user.v.validate(args):
             email = args['email']
             email_result = Users.query.filter_by(email=email).first()
             if email_result != None:
                 abort(401, message = 'Email is already taken')
-            if self.check_mail(email) != 'Valid':
+            if current_user.check_mail(email) != 'Valid':
                 abort(401, message = 'Invalid email')
 
             password = args['password']
@@ -188,7 +188,7 @@ class User(Resource):
                 abort(401, message = 'Password does not meet security requirements')
 
             data = Users(
-                public_id=self.id_generator(80),
+                public_id=current_user.id_generator(80),
                 firstname=args['firstname'],
                 lastname=args['lastname'],
                 email=args['email'],
@@ -239,6 +239,6 @@ api.add_resource(UserLogin, "/login")
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='192.168.178.69', port=80, debug=True)
 
 
