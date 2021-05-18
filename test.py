@@ -49,8 +49,6 @@ admin_data = {
 
 admin = requests.post(login_url, json = admin_data)
 
-print(admin.status_code)
-
 
 try:
     response = admin.json()
@@ -58,27 +56,12 @@ try:
 except:
     token = 'invalid token'
 
-token_header = 'x-access-tokens'
-headers = {token_header:token}
 
-
-firstname = 'Leon'
-lastname = 'Bos'
-email = 'lo.bos@st.hanze.nl'
-password = 'LeonBos123!'
-role = 'admin'
-
-verzorger_data = {
-            'email': email,
-            'firstname': firstname,
-            'lastname': lastname,
-            'password': password,
-            'role': role
-        }
-
-r1 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
+headers = {'x-access-tokens':token}
+wrong_headers = {'x-access-tokens':'sdagfw424tg425'}
 
 #-----<   verzorger data test
+#user already created
 firstname = 'Anna'
 lastname = 'Bakhuizen'
 email = 'anna.bakhuizen@gmail.com'
@@ -95,6 +78,7 @@ verzorger_data = {
 
 r1 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
+#weak password
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'henk.visscher@gmail.com'
@@ -112,6 +96,7 @@ verzorger_data = {
 
 r2 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
+#invalid email
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'dit_is_geen_valide_email@'
@@ -128,7 +113,7 @@ verzorger_data = {
 
 r3 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
-
+#email already used
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'testmail@mail.com'
@@ -145,9 +130,25 @@ verzorger_data = {
 
 r4 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
+#unauthorized
+firstname = 'Henk'
+lastname = 'Visscher'
+email = 'henkvisscher@mail.com'
+password = 'DitIsEENsterkwachtwoord2001!@#'
+role = 'verzorger'
+
+verzorger_data = {
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
+
+r5 = requests.post(verzorgers_url, json = verzorger_data, headers=wrong_headers)
+
 
 #----->
-
 
 
 #------<   Login tests
@@ -172,6 +173,16 @@ login2_data = {
 }
 
 login2 = requests.post(login_url, json = login2_data, headers=headers)
+
+email = 'admin@test.nl'
+password = "xxx') OR 1 = 1 -- ]"
+
+login3_data = {
+    'email':email,
+    'password':password
+}
+
+login3 = requests.post(login_url, json = login2_data, headers=headers)
 
 #------>
 passed = True
@@ -207,6 +218,9 @@ if r3.status_code == 201:
 if r4.status_code == 201:
     print("Verzorger r4 test failed")
     passed = False
+if r4.status_code == 201:
+    print("Verzorger r5 test failed")
+    passed = False
 
 if login1.text != 'invalid password':
     print("login1 test failed")
@@ -214,6 +228,10 @@ if login1.text != 'invalid password':
 
 if login2.text != 'invalid combination':
     print('login2 test failed')
+    passed = False
+
+if login3.text != 'invalid combination':
+    print('login3 test failed')
     passed = False
 
 if passed:
