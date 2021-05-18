@@ -6,7 +6,7 @@ import sqlite3
 sensor_url = 'http://ronleon.nl/sensordata'
 verzorgers_url = 'http://ronleon.nl/users'
 login_url = 'http://ronleon.nl/login'
-
+patient_url = 'http://ronleon.nl/patients'
 
 #-----<   Sensor data test
 sensor_id = 1
@@ -59,6 +59,39 @@ except:
 
 headers = {'x-access-tokens':token}
 wrong_headers = {'x-access-tokens':'sdagfw424tg425'}
+
+
+#------< Patient data tests
+#tag already used
+patient1_data = {
+            'firstname': 'Bart',
+            'lastname': 'Klaassen',
+            'tag' : '21BCA31C',
+            'verzorger_id' : 1,
+            'sensor_1': 1,
+            'sensor_2': 2,
+            'sensor_3': 3,
+            'sensor_4': 4
+        }
+
+patient1 = requests.post(patient_url, json=patient1_data, headers=headers)
+
+
+#unauthorized
+patient2_data = {
+            'firstname': 'Geert',
+            'lastname': 'Van Der Meer',
+            'tag' : '46FCF1XC',
+            'verzorger_id' : 1,
+            'sensor_1': 5,
+            'sensor_2': 6,
+            'sensor_3': 7,
+            'sensor_4': 8
+        }
+
+patient2 = requests.post(patient_url, json=patient2_data, headers=wrong_headers)
+
+#------>
 
 #-----<   verzorger data test
 #user already created
@@ -232,6 +265,14 @@ if login2.text != 'invalid combination':
 
 if login3.text != 'invalid combination':
     print('login3 test failed')
+    passed = False
+
+if patient1.text != 'Tag already used':
+    print('Patient1 test failed')
+    passed = False
+
+if patient2.status_code == 201:
+    print("Patient2 test failed")
     passed = False
 
 if passed:
