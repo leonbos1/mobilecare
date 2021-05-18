@@ -227,7 +227,7 @@ class UserLogin(Resource):
                     token = jwt.encode({'public_id': user.public_id}, app.config['SECRET_KEY'], algorithm='HS256')
                     return jsonify({'token' : token})
                 else:
-                    print('test')
+                    return Response('invalid password', status=400)       
             else:
                 return Response('invalid combination', status=400)
         else:

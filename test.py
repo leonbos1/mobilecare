@@ -2,7 +2,6 @@ from datetime import datetime
 import requests
 import time
 import sqlite3
-import jsonify
 
 sensor_url = 'http://ronleon.nl/sensordata'
 verzorgers_url = 'http://ronleon.nl/users'
@@ -43,20 +42,41 @@ new_activation_duration = last_sensordata[5]
 email = 'admin@test.nl'
 password = 'Password123!'
 
-login_data = {
+admin_data = {
             'email': email, 
             'password':password
             }
 
-login1 = requests.post(login_url, json = login_data)
+admin = requests.post(login_url, json = admin_data)
 
-print(login1.status_code)
+print(admin.status_code)
 
-response = login1.json()
-token = response['token']
+
+try:
+    response = admin.json()
+    token = response['token']
+except:
+    token = 'invalid token'
+
 token_header = 'x-access-tokens'
 headers = {token_header:token}
 
+
+firstname = 'Leon'
+lastname = 'Bos'
+email = 'lo.bos@st.hanze.nl'
+password = 'LeonBos123!'
+role = 'admin'
+
+verzorger_data = {
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
+
+r1 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
 #-----<   verzorger data test
 firstname = 'Anna'
@@ -90,7 +110,7 @@ verzorger_data = {
         }
 
 
-r2 = requests.post(verzorgers_url, json = verzorger_data)
+r2 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
 firstname = 'Henk'
 lastname = 'Visscher'
@@ -106,7 +126,7 @@ verzorger_data = {
             'role': role
         }
 
-r3 = requests.post(verzorgers_url, json = verzorger_data)
+r3 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
 
 firstname = 'Henk'
@@ -123,36 +143,35 @@ verzorger_data = {
             'role': role
         }
 
-r4 = requests.post(verzorgers_url, json = verzorger_data)
+r4 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
-#print(r4.status_code)
-#print(r4.text)
 
-"""
-firstname = 'Leon'
-lastname = 'Bos'
-email = 'leonbos@gmail.nl'
-password = 'SterkWachtwoord123!'
-role = 'admin'
-
-verzorger_data = {
-            'email': {email},
-            'firstname': {firstname},
-            'lastname': {lastname},
-            'password': {password},
-            'role': {role}
-        }
-
-r4 = requests.post(verzorgers_url, verzorger_data)
-print(r4.status_code)
-"""
 #----->
 
 
 
 #------<   Login tests
 
+email = 'admin@test.nl'
+password = 'DitWachtwoordKloptNiet'
 
+login1_data = {
+    'email':email,
+    'password':password
+}
+
+login1 = requests.post(login_url, json = login1_data, headers=headers)
+
+email = 'invalid@email.nl'
+password = 'aaaaaa'
+
+
+login2_data = {
+    'email':email,
+    'password':password
+}
+
+login2 = requests.post(login_url, json = login2_data, headers=headers)
 
 #------>
 passed = True
@@ -189,6 +208,13 @@ if r4.status_code == 201:
     print("Verzorger r4 test failed")
     passed = False
 
+if login1.text != 'invalid password':
+    print("login1 test failed")
+    passed = False
+
+if login2.text != 'invalid combination':
+    print('login2 test failed')
+    passed = False
 
 if passed:
     print("All tests passed succesfully")
