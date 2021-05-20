@@ -1,5 +1,6 @@
 from functools import wraps
-
+from json import JSONEncoder
+import json
 import jwt
 from cerberus import Validator
 from flask import Flask, request, Response, g, jsonify
@@ -12,9 +13,11 @@ import re
 import bcrypt
 import string
 import random
-import datetime
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
@@ -47,6 +50,16 @@ class Users(db.Model): #door leon
 
     def __repr__(self):
         return f'Gebruiker(id={self.id}, public_id={self.public_id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password}), role={self.role}'
+
+    def encode(self):
+        return {
+            'id': self.id,
+            'publicId': self.public_id,
+            'firstname': self.firstname,
+            'lastname': self.lastname,
+            'email': self.email,
+            'role': self.role
+        }
 
 
 def token_required(f):
@@ -225,9 +238,9 @@ class UserLogin(Resource):
             if user:
                 if bcrypt.checkpw(password.encode('utf-8'), user.password):
                     token = jwt.encode({'public_id': user.public_id}, app.config['SECRET_KEY'], algorithm='HS256')
-                    return jsonify({'token' : token})
+                    return jsonify({'token': token, 'user': user.encode()})
                 else:
-                    print('test')
+                    return Response('invalid combination', status=400)
             else:
                 return Response('invalid combination', status=400)
         else:
