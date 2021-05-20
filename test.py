@@ -4,9 +4,9 @@ import time
 import sqlite3
 
 sensor_url = 'http://ronleon.nl/sensordata'
-verzorgers_url = 'http://ronleon.nl/verzorgers'
+verzorgers_url = 'http://ronleon.nl/users'
 login_url = 'http://ronleon.nl/login'
-
+patient_url = 'http://ronleon.nl/patients'
 
 #-----<   Sensor data test
 sensor_id = 1
@@ -39,55 +39,185 @@ new_activation_duration = last_sensordata[5]
 
 #----->
 
+email = 'admin@test.nl'
+password = 'Password123!'
+
+admin_data = {
+            'email': email, 
+            'password':password
+            }
+
+admin = requests.post(login_url, json = admin_data)
+
+
+try:
+    response = admin.json()
+    token = response['token']
+except:
+    token = 'invalid token'
+
+
+headers = {'x-access-tokens':token}
+wrong_headers = {'x-access-tokens':'sdagfw424tg425'}
+
+
+#------< Patient data tests
+#tag already used
+patient1_data = {
+            'firstname': 'Bart',
+            'lastname': 'Klaassen',
+            'tag' : '21BCA31C',
+            'verzorger_id' : 1,
+            'sensor_1': 1,
+            'sensor_2': 2,
+            'sensor_3': 3,
+            'sensor_4': 4
+        }
+
+patient1 = requests.post(patient_url, json=patient1_data, headers=headers)
+
+
+#unauthorized
+patient2_data = {
+            'firstname': 'Geert',
+            'lastname': 'Van Der Meer',
+            'tag' : '46FCF1XC',
+            'verzorger_id' : 1,
+            'sensor_1': 5,
+            'sensor_2': 6,
+            'sensor_3': 7,
+            'sensor_4': 8
+        }
+
+patient2 = requests.post(patient_url, json=patient2_data, headers=wrong_headers)
+
+#------>
 
 #-----<   verzorger data test
+#user already created
 firstname = 'Anna'
 lastname = 'Bakhuizen'
 email = 'anna.bakhuizen@gmail.com'
 password = 'AnnaBakhuizen@19'
+role = 'verzorger'
 
-data = {
-    'email': {email},
-    'firstname': {firstname},
-    'lastname': {lastname},
-    'password': {password},
-    'role': {'required': True, 'type': 'string'}
-}
+verzorger_data = {
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
 
-r1 = requests.put(verzorgers_url, verzorger_data)
+r1 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
 
+#weak password
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'henk.visscher@gmail.com'
 password = 'zwakwachtwoord'
-
+role = 'verzorger'
 
 verzorger_data = {
-    'firstname' : firstname,
-    'lastname' : lastname,
-    'email' : email,
-    'password' : password
-}
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
 
-r2 = requests.put(verzorgers_url, verzorger_data)
 
+r2 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
+
+#invalid email
 firstname = 'Henk'
 lastname = 'Visscher'
 email = 'dit_is_geen_valide_email@'
 password = 'DitIsEENsterkwachtwoord2001!@#'
-
+role = 'verzorger'
 
 verzorger_data = {
-    'firstname' : firstname,
-    'lastname' : lastname,
-    'email' : email,
-    'password' : password
-}
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
 
-r3 = requests.put(verzorgers_url, verzorger_data)
+r3 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
+
+#email already used
+firstname = 'Henk'
+lastname = 'Visscher'
+email = 'testmail@mail.com'
+password = 'DitIsEENsterkwachtwoord2001!@#'
+role = 'verzorger'
+
+verzorger_data = {
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
+
+r4 = requests.post(verzorgers_url, json = verzorger_data, headers=headers)
+
+#unauthorized
+firstname = 'Henk'
+lastname = 'Visscher'
+email = 'henkvisscher@mail.com'
+password = 'DitIsEENsterkwachtwoord2001!@#'
+role = 'verzorger'
+
+verzorger_data = {
+            'email': email,
+            'firstname': firstname,
+            'lastname': lastname,
+            'password': password,
+            'role': role
+        }
+
+r5 = requests.post(verzorgers_url, json = verzorger_data, headers=wrong_headers)
+
 
 #----->
 
+
+#------<   Login tests
+
+email = 'admin@test.nl'
+password = 'DitWachtwoordKloptNiet'
+
+login1_data = {
+    'email':email,
+    'password':password
+}
+
+login1 = requests.post(login_url, json = login1_data, headers=headers)
+
+email = 'invalid@email.nl'
+password = 'aaaaaa'
+
+
+login2_data = {
+    'email':email,
+    'password':password
+}
+
+login2 = requests.post(login_url, json = login2_data, headers=headers)
+
+email = 'admin@test.nl'
+password = "xxx') OR 1 = 1 -- ]"
+
+login3_data = {
+    'email':email,
+    'password':password
+}
+
+login3 = requests.post(login_url, json = login2_data, headers=headers)
+
+#------>
 passed = True
 
 if last_id != new_id:
@@ -109,14 +239,40 @@ if activation_duration != new_activation_duration:
     print(f"Activation duration failed, should be {activation_duration} but is {new_activation_duration}")
     passed = False
 
-if r1.status_code != 401:
-    print("Verzorger r1 test failed, existing emails should be rejected")
+if r1.status_code == 201:
+    print("Verzorger r1 test failed")
     passed = False
-if r2.status_code != 401:
-    print("Verzorger r2 test failed, weak passwords should be rejected")
+if r2.status_code == 201:
+    print("Verzorger r2 test failed")
     passed = False
-if r3.status_code != 401:
-    print("Verzorger r3 test failed, invalid emails should be rejected")
+if r3.status_code == 201:
+    print("Verzorger r3 test failed")
+    passed = False
+if r4.status_code == 201:
+    print("Verzorger r4 test failed")
+    passed = False
+if r4.status_code == 201:
+    print("Verzorger r5 test failed")
+    passed = False
+
+if login1.text != 'invalid password':
+    print("login1 test failed")
+    passed = False
+
+if login2.text != 'invalid combination':
+    print('login2 test failed')
+    passed = False
+
+if login3.text != 'invalid combination':
+    print('login3 test failed')
+    passed = False
+
+if patient1.text != 'Tag already used':
+    print('Patient1 test failed')
+    passed = False
+
+if patient2.status_code == 201:
+    print("Patient2 test failed")
     passed = False
 
 if passed:

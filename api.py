@@ -1,5 +1,6 @@
 from functools import wraps
-
+from json import JSONEncoder
+import json
 import jwt
 from cerberus import Validator
 from flask import Flask, request, Response, g, jsonify
@@ -12,9 +13,11 @@ import re
 import bcrypt
 import string
 import random
-import datetime
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
@@ -36,7 +39,7 @@ class SensorTime(db.Model): #door leon
         return f"Sensor(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
 
 
-class Users(db.Model): #door leon
+class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String)
     firstname = db.Column(db.String)
@@ -44,15 +47,24 @@ class Users(db.Model): #door leon
     email = db.Column(db.String)
     password = db.Column(db.String)
     role = db.Column(db.String)
-
+    
     def __repr__(self):
         return f'Gebruiker(id={self.id}, public_id={self.public_id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password}), role={self.role}'
+
+    def encode(self):
+        return {
+            'id': self.id,
+            'publicId': self.public_id,
+            'firstname': self.firstname,
+            'lastname': self.lastname,
+            'email': self.email,
+            'role': self.role
+        }
 
 
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-
         token = None
 
         if 'x-access-tokens' in request.headers:
@@ -67,10 +79,22 @@ def token_required(f):
         except:
             abort(401)
 
-        return f(*args, **kwargs)
+        return f(current_user, *args, **kwargs)
     return decorator
 
 
+def admin_required(f):
+    @wraps(f)
+    @token_required
+    def check_admin(current_user, *args, **kwargs):
+        if current_user.role == 'admin':
+            pass
+        else:
+            abort(401)
+        return f(*args, **kwargs)
+
+    return check_admin
+#door leon
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
 sensor_put_args.add_argument("sensor_id", type=int, help="Dit is het id van de sensor die iets heeft gescand")
@@ -85,11 +109,21 @@ user_post_args.add_argument("lastname", type=str, help='dit is de achternaam van
 user_post_args.add_argument("email", type=str, help='dit is de email van een gebruiker')
 user_post_args.add_argument("password", type=str, help='dit is de password van een gebruiker')
 
+patient_post_args = reqparse.RequestParser()
+patient_post_args.add_argument("firstname", type=str, help="dit is de voornaam van een patient")
+patient_post_args.add_argument("lastname", type=str, help='dit is de achternaam van een patient')
+patient_post_args.add_argument("tag", type=str, help='dit is de tag van een patient')
+patient_post_args.add_argument("verzorger_id", type=int, help='dit is de verzorger_id van een patient')
+patient_post_args.add_argument("sensor1", type=int, help='dit is de 1e sensor van een patient')
+patient_post_args.add_argument("sensor2", type=int, help='dit is de 2e sensor van een patient')
+patient_post_args.add_argument("sensor3", type=int, help='dit is de 3e sensor van een patient')
+patient_post_args.add_argument("sensor4", type=int, help='dit is de 4e sensor van een patient')
+
 user_login_args = reqparse.RequestParser()
 user_login_args.add_argument("email", type=str, help='dit is de email van een gebruiker')
 user_login_args.add_argument("password", type=str, help='dit is de password van een gebruiker')
 
-
+#door leon
 sensor_data = {
     'id': fields.Integer,
     'sensor_id': fields.Integer,
@@ -98,7 +132,7 @@ sensor_data = {
     'tag': fields.String,
     'activation_duration': fields.Integer
 }
-
+#door leon
 user_data = {
     'id': fields.Integer,
     'public_id': fields.String,
@@ -108,7 +142,18 @@ user_data = {
     'password': fields.String,
     'role': fields.String
 }
-
+patient_data = {
+    'id': fields.Integer,
+    'firstname': fields.String,
+    'lastname': fields.String,
+    'tag': fields.String,
+    'verzorger_id': fields.Integer,
+    'sensor_1': fields.Integer,
+    'sensor_2': fields.Integer,
+    'sensor_3': fields.Integer,
+    'sensor_4': fields.Integer
+}
+#door leon
 user_login = {
     'email': fields.String,
     'password': fields.String
@@ -129,6 +174,7 @@ class Sensor(Resource):
         return data, 201
 
 
+#door leon
 class User(Resource):
     def __init__(self):
         schema = {
@@ -142,18 +188,21 @@ class User(Resource):
 
     @marshal_with(user_data)
     @token_required
-    def get(self):
+    @admin_required
+    def get(self, current_user):
         result = Users.query.all()
         return result
 
-    def post(self):
+    @token_required
+    @admin_required
+    def post(self, current_user):
         args = request.get_json(force=True)
-        if self.v.validate(args):
+        if current_user.v.validate(args):
             email = args['email']
             email_result = Users.query.filter_by(email=email).first()
             if email_result != None:
                 abort(401, message = 'Email is already taken')
-            if self.check_mail(email) != 'Valid':
+            if current_user.check_mail(email) != 'Valid':
                 abort(401, message = 'Invalid email')
 
             password = args['password']
@@ -173,7 +222,7 @@ class User(Resource):
                 abort(401, message = 'Password does not meet security requirements')
 
             data = Users(
-                public_id=self.id_generator(80),
+                public_id=current_user.id_generator(80),
                 firstname=args['firstname'],
                 lastname=args['lastname'],
                 email=args['email'],
@@ -194,6 +243,42 @@ class User(Resource):
     def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
 
+class Patient(Resource):
+    def __init__(self):
+        schema = {
+            'firstname': {'required': True, 'type': 'string'},
+            'lastname': {'required': True, 'type': 'string'},
+            'tag': {'required': True, 'type': 'string'},
+            'verzorger_id': {'required': True, 'type': 'integer'},
+            'sensor_1': {'required': True, 'type': 'integer'},
+            'sensor_2': {'required': True, 'type': 'integer'},
+            'sensor_3': {'required': True, 'type': 'integer'},
+            'sensor_4': {'required': True, 'type': 'integer'}
+        }
+        self.v = Validator(schema)
+
+    @marshal_with(patient_data)
+    @token_required
+    @admin_required
+    def get(self, current_user):
+        result = Patients.query.all()
+        return result
+
+    @token_required
+    @admin_required
+    def post(self, current_user):
+        args = request.get_json(force=True)
+        if current_user.v.validate(args):
+            tag = args['tag']
+            tag_result = Patients.query.filter_by(tag=tag).first()
+            if tag_result != None:
+                return Response('Tag already used', 401)
+            data = Patients(firstname=args['firstname'], lastname=args['lastname'], tag=args['tag'], verzorger_id=args['verzorger_id'], sensor_1=args['sensor_1'], sensor_2=args['sensor_2'], sensor_3=args['sensor_3'], sensor_4=args['sensor_4'])
+            db.session.add(data)
+            db.session.commit()
+            return Response(data, 201)
+        else:
+            return Response('missing fields', 400)
 
 class UserLogin(Resource):
     def __init__(self):
@@ -210,9 +295,9 @@ class UserLogin(Resource):
             if user:
                 if bcrypt.checkpw(password.encode('utf-8'), user.password):
                     token = jwt.encode({'public_id': user.public_id}, app.config['SECRET_KEY'], algorithm='HS256')
-                    return jsonify({'token' : token})
+                    return jsonify({'token': token, 'user': user.encode()})
                 else:
-                    print('test')
+                    return Response('invalid combination', status=400)
             else:
                 return Response('invalid combination', status=400)
         else:
@@ -221,7 +306,9 @@ class UserLogin(Resource):
 api.add_resource(Sensor, "/sensordata")
 api.add_resource(User, "/users")
 api.add_resource(UserLogin, "/login")
-
+api.add_resource(Patient, "/patients")
 
 if __name__ == '__main__':
     app.run(host='192.168.178.69', port=80, debug=True)
+
+
