@@ -32,7 +32,7 @@ def threaded_client(connection): #door leon
     sensor_id = 0
     previous_data = False
     first_end = False
-    url = 'http://192.168.178.69:80/sensordata/'
+    url = 'http://192.168.178.69:80/sensordata'
     while True:
         scanner = ''
         scanner_bool = False
