@@ -3,9 +3,9 @@ import requests
 import time
 import sqlite3
 
-sensor_url = 'http://ronleon.nl/sensordata'
-verzorgers_url = 'http://ronleon.nl/verzorgers'
-login_url = 'http://ronleon.nl/login'
+sensor_url = 'http://ronleon.nl/sensordata/'
+verzorgers_url = 'http://ronleon.nl/verzorgers/'
+login_url = 'http://ronleon.nl/login/'
 
 
 #-----<   Sensor data test
@@ -46,12 +46,11 @@ lastname = 'Bakhuizen'
 email = 'anna.bakhuizen@gmail.com'
 password = 'AnnaBakhuizen@19'
 
-data = {
-    'email': {email},
-    'firstname': {firstname},
-    'lastname': {lastname},
-    'password': {password},
-    'role': {'required': True, 'type': 'string'}
+verzorger_data = {
+    'firstname' : firstname,
+    'lastname' : lastname,
+    'email' : email,
+    'password' : password
 }
 
 r1 = requests.put(verzorgers_url, verzorger_data)
