@@ -16,27 +16,56 @@
 #    sec=int(input("Enter seconds: "))
 #    timer(words,sec)
 
-import numpy as np
-import matplotlib.pyplot as plt
+#import numpy as np
+#import matplotlib.pyplot as plt
 
-data = np.random.randn(5000) * 20 + 20 #Als voorbeeld.
+#data = np.random.randn(5000) * 20 + 20 #Als voorbeeld.
 
 # Zoekt afwijkingen.
 
-def find_anomalies(data):
-    anomalies = []
+#def find_anomalies(data):
+#    anomalies = []
 
-    random_data_std = std(random_data)
-    random_data_mean = mean(random_data)
-    anomaly_cut_off = random_data_std * 3
+#    random_data_std = std(random_data)
+#    random_data_mean = mean(random_data)
+#    anomaly_cut_off = random_data_std * 3
 
-    lower_limit = random_data_mean - anomaly_cut_off
-    upper_limit = random_data_mean + anomaly_cut_off
-    print(lower_limit)
+#    lower_limit = random_data_mean - anomaly_cut_off
+#    upper_limit = random_data_mean + anomaly_cut_off
+#    print(lower_limit)
 
-    for outlier in random_data:
-        if outlier > upper_limit or outlier < lower_limit:
-            anomalies.append(outlier)
-    return anomalies
+#    for outlier in random_data:
+#        if outlier > upper_limit or outlier < lower_limit:
+#            anomalies.append(outlier)
+#    return anomalies
 
-find_anomalies(data)
+#find_anomalies(data)
+
+
+import sqlite3
+import datetime
+from users import User
+
+
+conn = sqlite3.connect('database.db')
+
+c = conn.cursor()
+# Kijken of sensoor afgegaan is tussen bepaalde tijd.
+c.execute("""SELECT * FROM sensor_time
+            WHERE sensor-time BETWEEN 'now 10:00:00' AND 'now 06:00:00'""")
+
+conn.commit()
+
+
+# Alarm klok instellen.
+alarmH = int(input("Uur instellen:"))
+alarmM = int(input("Minuten instellen:"))
+amPm = str(input("am of pm?:"))
+
+if amPm == "pm":
+    alarmH += 12
+
+while True:
+    if alarmH == datetime.datetime.now().hour and alarmM == datetime.datetime.now().minute:
+        print("Alarm!")
+        break

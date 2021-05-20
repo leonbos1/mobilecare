@@ -86,6 +86,6 @@ conn.close()
 #INSERT INTO patienten (first_name, last_name, age, email, tag)
 #VALUES ('Iris', 'Mob', '75', 'irism75@mail.com', 'AB399C65');
 
-create role rZorgverlening;
-grant all on verzorgers to rZorgverlening;
-grant rZorgverlening to ......;
+#create role rZorgverlening;
+#grant all on verzorgers to rZorgverlening;
+#grant rZorgverlening to ......;
