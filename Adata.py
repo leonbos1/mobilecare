@@ -41,18 +41,18 @@
 
 #find_anomalies(data)
 
+#-------------------------------------------------------------------------------------------------------------
 
 import sqlite3
 import datetime
-from users import User
+#from users import User
 
 
 conn = sqlite3.connect('database.db')
 
 c = conn.cursor()
-# Kijken of sensoor afgegaan is tussen bepaalde tijd.
-c.execute("""SELECT * FROM sensor_time
-            WHERE sensor-time BETWEEN 'now 10:00:00' AND 'now 06:00:00'""")
+# Kijken of sensor afgegaan is tussen bepaalde tijd.
+c.execute("""SELECT * FROM sensor_time WHERE time_activated BETWEEN 'now 10:00:00' AND 'now 06:00:00'""")
 
 conn.commit()
 
