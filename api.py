@@ -1,19 +1,16 @@
 from functools import wraps
-from json import JSONEncoder
-import json
 import jwt
 from cerberus import Validator
 from flask import Flask, request, Response, g, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.ext.declarative import declarative_base
 import os
-from werkzeug.security import generate_password_hash, check_password_hash
 import re
 import bcrypt
 import string
 import random
 from flask_cors import CORS
+from sqlalchemy.orm import backref
 
 
 app = Flask(__name__)
@@ -27,17 +24,16 @@ db = SQLAlchemy(app)
 
 sensor = {}
 
-class SensorTime(db.Model): #door leon
+class SensorData(db.Model): 
     id = db.Column(db.Integer, primary_key=True)
-    sensor_id = db.Column(db.Integer)
+    sensor_id = db.Column(db.Integer, db.ForeignKey('sensors.id'))
     time_activated = db.Column(db.String)
     time_deactivated = db.Column(db.String)
-    tag = db.Column(db.String)
+    tag = db.Column(db.Integer, db.ForeignKey('tags.id'))
     activation_duration = db.Column(db.Integer)
 
     def __repr__(self):
-        return f"Sensor(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
-
+        return f"Sensors(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +43,7 @@ class Users(db.Model):
     email = db.Column(db.String)
     password = db.Column(db.String)
     role = db.Column(db.String)
+    patient_verzorger = db.relationship('PatientVerzorger', backref = 'PatientVerzorger_Users')
     
     def __repr__(self):
         return f'Gebruiker(id={self.id}, public_id={self.public_id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password}), role={self.role}'
@@ -61,7 +58,47 @@ class Users(db.Model):
             'role': self.role
         }
 
+class Patients(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    firstname = db.Column(db.String)
+    lastname = db.Column(db.String)
+    patient_verzorger = db.relationship('PatientVerzorger', backref = 'PatientVerzorger_Patients')
+    sensors = db.relationship('Sensors', backref = 'Sensors_Patients')
+    tags = db.relationship('Tags', backref = 'Tags_Patients')
 
+    def __repr__(self):
+        return f'Patient(id={self.id}, firstname={self.firstname}, lastname={self.lastname}'
+
+class PatientVerzorger(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
+    verzorger_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    def __repr__(self):
+        return f'PatientVerzorger(id={self.id}, patient_id={self.patient_id}, verzorger_id={self.verzorger_id}'
+
+class Sensors(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
+    sensor_data = db.relationship('SensorData', backref = 'SensorData_Sensors')
+    
+    def __repr__(self):
+        return f'Sensors(id={self.id}, name={self.name}, patient_id={self.patient_id})'
+
+class Tags(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tag = db.Column(db.String)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
+    sensor_data = db.relationship('SensorData', backref = 'SensorData_Tags')
+    
+    def __repr__(self):
+        return f'Tags(id={self.id}, tag={self.tag}, patient_id={self.patient_id})'
+
+
+
+
+db.create_all()
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -94,6 +131,7 @@ def admin_required(f):
         return f(*args, **kwargs)
 
     return check_admin
+
 #door leon
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
@@ -112,12 +150,6 @@ user_post_args.add_argument("password", type=str, help='dit is de password van e
 patient_post_args = reqparse.RequestParser()
 patient_post_args.add_argument("firstname", type=str, help="dit is de voornaam van een patient")
 patient_post_args.add_argument("lastname", type=str, help='dit is de achternaam van een patient')
-patient_post_args.add_argument("tag", type=str, help='dit is de tag van een patient')
-patient_post_args.add_argument("verzorger_id", type=int, help='dit is de verzorger_id van een patient')
-patient_post_args.add_argument("sensor1", type=int, help='dit is de 1e sensor van een patient')
-patient_post_args.add_argument("sensor2", type=int, help='dit is de 2e sensor van een patient')
-patient_post_args.add_argument("sensor3", type=int, help='dit is de 3e sensor van een patient')
-patient_post_args.add_argument("sensor4", type=int, help='dit is de 4e sensor van een patient')
 
 user_login_args = reqparse.RequestParser()
 user_login_args.add_argument("email", type=str, help='dit is de email van een gebruiker')
@@ -145,13 +177,7 @@ user_data = {
 patient_data = {
     'id': fields.Integer,
     'firstname': fields.String,
-    'lastname': fields.String,
-    'tag': fields.String,
-    'verzorger_id': fields.Integer,
-    'sensor_1': fields.Integer,
-    'sensor_2': fields.Integer,
-    'sensor_3': fields.Integer,
-    'sensor_4': fields.Integer
+    'lastname': fields.String
 }
 #door leon
 user_login = {
@@ -162,13 +188,13 @@ user_login = {
 class Sensor(Resource):
     @marshal_with(sensor_data)
     def get(self):
-        result = SensorTime.query.all()
+        result = SensorData.query.all()
         return result
 
     @marshal_with(sensor_data)
     def put(self):
         args = sensor_put_args.parse_args()
-        data = SensorTime(sensor_id=args['sensor_id'], time_activated=args['time_activated'], time_deactivated=args['time_deactivated'], tag=args['tag'], activation_duration=args['activation_duration'])
+        data = SensorData(sensor_id=args['sensor_id'], time_activated=args['time_activated'], time_deactivated=args['time_deactivated'], tag=args['tag'], activation_duration=args['activation_duration'])
         db.session.add(data)
         db.session.commit()
         return data, 201
@@ -247,13 +273,7 @@ class Patient(Resource):
     def __init__(self):
         schema = {
             'firstname': {'required': True, 'type': 'string'},
-            'lastname': {'required': True, 'type': 'string'},
-            'tag': {'required': True, 'type': 'string'},
-            'verzorger_id': {'required': True, 'type': 'integer'},
-            'sensor_1': {'required': True, 'type': 'integer'},
-            'sensor_2': {'required': True, 'type': 'integer'},
-            'sensor_3': {'required': True, 'type': 'integer'},
-            'sensor_4': {'required': True, 'type': 'integer'}
+            'lastname': {'required': True, 'type': 'string'}
         }
         self.v = Validator(schema)
 
@@ -269,11 +289,14 @@ class Patient(Resource):
     def post(self, current_user):
         args = request.get_json(force=True)
         if current_user.v.validate(args):
-            tag = args['tag']
-            tag_result = Patients.query.filter_by(tag=tag).first()
-            if tag_result != None:
-                return Response('Tag already used', 401)
-            data = Patients(firstname=args['firstname'], lastname=args['lastname'], tag=args['tag'], verzorger_id=args['verzorger_id'], sensor_1=args['sensor_1'], sensor_2=args['sensor_2'], sensor_3=args['sensor_3'], sensor_4=args['sensor_4'])
+            firstname = args['firstname']
+            lastname = args['lastname']
+            result = Patients.query.filter_by(firstname=firstname).first()
+            if result != None:
+                result = Patients.query.filter_by(lastname=lastname).first()
+                if result != None:
+                    return Response('Patient already added',401)
+            data = Patients(firstname=args['firstname'], lastname=args['lastname'])
             db.session.add(data)
             db.session.commit()
             return Response(data, 201)
