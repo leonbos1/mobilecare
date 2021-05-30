@@ -24,9 +24,9 @@ requests.put(sensor_url, sensordata)
 conn = sqlite3.connect('database.db')
 cursor = conn.cursor()
 
-last_id = cursor.execute('select max(id) from sensor_time').fetchone()[0]
-last_sensordata = cursor.execute(f'select * from sensor_time where id = {last_id}').fetchall()[0]
-conn.execute(f'delete from sensor_time where id = {last_id}')
+last_id = cursor.execute('select max(id) from sensor_data').fetchone()[0]
+last_sensordata = cursor.execute(f'select * from sensor_data where id = {last_id}').fetchall()[0]
+conn.execute(f'delete from sensor_data where id = {last_id}')
 conn.commit()
 conn.close()
 
@@ -40,7 +40,7 @@ new_activation_duration = last_sensordata[5]
 #----->
 
 email = 'admin@test.nl'
-password = 'Password123!'
+password = 'Wachtwoord123!'
 
 admin_data = {
             'email': email, 
@@ -66,12 +66,6 @@ wrong_headers = {'x-access-tokens':'sdagfw424tg425'}
 patient1_data = {
             'firstname': 'Bart',
             'lastname': 'Klaassen',
-            'tag' : '21BCA31C',
-            'verzorger_id' : 1,
-            'sensor_1': 1,
-            'sensor_2': 2,
-            'sensor_3': 3,
-            'sensor_4': 4
         }
 
 patient1 = requests.post(patient_url, json=patient1_data, headers=headers)
@@ -81,12 +75,6 @@ patient1 = requests.post(patient_url, json=patient1_data, headers=headers)
 patient2_data = {
             'firstname': 'Geert',
             'lastname': 'Van Der Meer',
-            'tag' : '46FCF1XC',
-            'verzorger_id' : 1,
-            'sensor_1': 5,
-            'sensor_2': 6,
-            'sensor_3': 7,
-            'sensor_4': 8
         }
 
 patient2 = requests.post(patient_url, json=patient2_data, headers=wrong_headers)
@@ -255,7 +243,7 @@ if r4.status_code == 201:
     print("Verzorger r5 test failed")
     passed = False
 
-if login1.text != 'invalid password':
+if login1.text != 'invalid combination':
     print("login1 test failed")
     passed = False
 
@@ -267,7 +255,7 @@ if login3.text != 'invalid combination':
     print('login3 test failed')
     passed = False
 
-if patient1.text != 'Tag already used':
+if patient1.text != 'Patient already added':
     print('Patient1 test failed')
     passed = False
 
@@ -277,8 +265,3 @@ if patient2.status_code == 201:
 
 if passed:
     print("All tests passed succesfully")
-
-
-
-
-
