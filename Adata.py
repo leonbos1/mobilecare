@@ -1,3 +1,14 @@
+import sqlite3
+
+conn = sqlite3.connect('database.db')
+
+c = conn.cursor()
+# Kijken of sensor afgegaan is tussen bepaalde tijd.
+c.execute("""SELECT * FROM sensor_time WHERE time_activated BETWEEN 'now 10:00:00' AND 'now 06:00:00'""")
+
+conn.commit()
+
+
 #import winsound
 #from win10toast import ToastNotifier
 
@@ -43,29 +54,19 @@
 
 #-------------------------------------------------------------------------------------------------------------
 
-import sqlite3
-import datetime
+#import datetime
 #from users import User
 
 
-conn = sqlite3.connect('database.db')
-
-c = conn.cursor()
-# Kijken of sensor afgegaan is tussen bepaalde tijd.
-c.execute("""SELECT * FROM sensor_time WHERE time_activated BETWEEN 'now 10:00:00' AND 'now 06:00:00'""")
-
-conn.commit()
-
-
 # Alarm klok instellen.
-alarmH = int(input("Uur instellen:"))
-alarmM = int(input("Minuten instellen:"))
-amPm = str(input("am of pm?:"))
+#alarmH = int(input("Uur instellen:"))
+#alarmM = int(input("Minuten instellen:"))
+#amPm = str(input("am of pm?:"))
 
-if amPm == "pm":
-    alarmH += 12
+#if amPm == "pm":
+#    alarmH += 12
 
-while True:
-    if alarmH == datetime.datetime.now().hour and alarmM == datetime.datetime.now().minute:
-        print("Alarm!")
-        break
+#while True:
+#    if alarmH == datetime.datetime.now().hour and alarmM == datetime.datetime.now().minute:
+#        print("Alarm!")
+#        break
