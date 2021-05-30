@@ -95,10 +95,6 @@ class Tags(db.Model):
     def __repr__(self):
         return f'Tags(id={self.id}, tag={self.tag}, patient_id={self.patient_id})'
 
-
-
-
-db.create_all()
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -132,7 +128,6 @@ def admin_required(f):
 
     return check_admin
 
-#door leon
 sensor_put_args = reqparse.RequestParser()
 #sensor_put_args.add_argument("id", type=int, help="Dit is het id van de log")
 sensor_put_args.add_argument("sensor_id", type=int, help="Dit is het id van de sensor die iets heeft gescand")
@@ -155,7 +150,7 @@ user_login_args = reqparse.RequestParser()
 user_login_args.add_argument("email", type=str, help='dit is de email van een gebruiker')
 user_login_args.add_argument("password", type=str, help='dit is de password van een gebruiker')
 
-#door leon
+
 sensor_data = {
     'id': fields.Integer,
     'sensor_id': fields.Integer,
@@ -164,7 +159,19 @@ sensor_data = {
     'tag': fields.String,
     'activation_duration': fields.Integer
 }
-#door leon
+
+sensors_data = {
+    'id': fields.Integer,
+    'name': fields.String,
+    'patient_id' : fields.Integer
+}
+
+tag_data = {
+    'id': fields.Integer,
+    'tag': fields.String,
+    'patient_id' : fields.Integer
+}
+
 user_data = {
     'id': fields.Integer,
     'public_id': fields.String,
@@ -179,13 +186,19 @@ patient_data = {
     'firstname': fields.String,
     'lastname': fields.String
 }
-#door leon
+
+patient_verzorger_data = {
+    'id': fields.Integer,
+    'firstname': fields.String,
+    'lastname': fields.String
+}
+
 user_login = {
     'email': fields.String,
     'password': fields.String
 }
 
-class Sensor(Resource):
+class SensorsData(Resource):
     @marshal_with(sensor_data)
     def get(self):
         result = SensorData.query.all()
@@ -200,7 +213,6 @@ class Sensor(Resource):
         return data, 201
 
 
-#door leon
 class User(Resource):
     def __init__(self):
         schema = {
@@ -303,6 +315,108 @@ class Patient(Resource):
         else:
             return Response('missing fields', 400)
 
+class PatientVerzorgers(Resource):
+    def __init__(self):
+        schema = {
+            'patient_id': {'required': True, 'type': 'integer'},
+            'verzorger_id': {'required': True, 'type': 'integer'}
+        }
+        self.v = Validator(schema)
+
+    @marshal_with(patient_verzorger_data)
+    @token_required
+    @admin_required
+    def get(self, current_user):
+        result = PatientVerzorger.query.all()
+        return result
+
+    @token_required
+    @admin_required
+    def post(self, current_user):
+        args = request.get_json(force=True)
+        if current_user.v.validate(args):
+            patient_id = args['patient_id']
+            verzorger_id = args['verzorger_id']
+            result = PatientVerzorger.query.filter_by(patient_id=patient_id).first()
+            if result != None:
+                result = PatientVerzorger.query.filter_by(verzorger_id=verzorger_id).first()
+                if result != None:
+                    return Response('Patient is al gekoppeld met verzorger',401)
+            data = PatientVerzorger(patient_id=args['patient_id'], verzorger_id=args['verzorger_id'])
+            db.session.add(data)
+            db.session.commit()
+            return Response(data, 201)
+        else:
+            return Response('missing fields', 400)
+
+class Sensor(Resource):
+    def __init__(self):
+        schema = {
+            'name': {'required': True, 'type': 'string'},
+            'patient_id': {'required': True, 'type': 'integer'}
+        }
+        self.v = Validator(schema)
+
+    @marshal_with(sensors_data)
+    @token_required
+    @admin_required
+    def get(self, current_user):
+        result = Sensors.query.all()
+        return result
+
+    @token_required
+    @admin_required
+    def post(self, current_user):
+        args = request.get_json(force=True)
+        if current_user.v.validate(args):
+            name = args['name']
+            patient_id = args['patient_id']
+            result = Sensors.query.filter_by(name=name).first()
+            if result != None:
+                result = Sensors.query.filter_by(patient_id=patient_id).first()
+                if result != None:
+                    return Response('Patient is al gekoppeld met sensor',401)
+            data = Sensors(name=args['name'], patient_id=args['patient_id'])
+            db.session.add(data)
+            db.session.commit()
+            return Response(data, 201)
+        else:
+            return Response('missing fields', 400)
+
+class Tag(Resource):
+    def __init__(self):
+        schema = {
+            'tag': {'required': True, 'type': 'string'},
+            'patient_id': {'required': True, 'type': 'integer'}
+        }
+        self.v = Validator(schema)
+
+    @marshal_with(tag_data)
+    @token_required
+    @admin_required
+    def get(self, current_user):
+        result = Tags.query.all()
+        return result
+
+    @token_required
+    @admin_required
+    def post(self, current_user):
+        args = request.get_json(force=True)
+        if current_user.v.validate(args):
+            tag = args['tag']
+            patient_id = args['patient_id']
+            result = Tags.query.filter_by(tag=tag).first()
+            if result != None:
+                result = Tags.query.filter_by(patient_id=patient_id).first()
+                if result != None:
+                    return Response('Patient is al gekoppeld met tag',401)
+            data = Tags(tag=args['tag'], patient_id=args['patient_id'])
+            db.session.add(data)
+            db.session.commit()
+            return Response(data, 201)
+        else:
+            return Response('missing fields', 400)
+
 class UserLogin(Resource):
     def __init__(self):
         self.schema = {'email': {'required': True, 'type': 'string'}, 'password': {'required': True, 'type': 'string'}}
@@ -326,10 +440,13 @@ class UserLogin(Resource):
         else:
             return Response('missing fields', status=400)
     
-api.add_resource(Sensor, "/sensordata")
+api.add_resource(SensorsData, "/sensordata")
 api.add_resource(User, "/users")
 api.add_resource(UserLogin, "/login")
 api.add_resource(Patient, "/patients")
+api.add_resource(PatientVerzorgers, "/patientverzorger")
+api.add_resource(Sensor, "/sensor")
+api.add_resource(Tag, "/tag")
 
 if __name__ == '__main__':
     app.run(host='192.168.178.69', port=80, debug=True)
