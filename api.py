@@ -1,3 +1,4 @@
+import json
 from functools import wraps
 import jwt
 from cerberus import Validator
@@ -67,7 +68,18 @@ class Patients(db.Model):
     tags = db.relationship('Tags', backref = 'Tags_Patients')
 
     def __repr__(self):
-        return f'Patient(id={self.id}, firstname={self.firstname}, lastname={self.lastname}'
+        return f'Patient(id={self.id}, firstname={self.firstname}, lastname={self.lastname}, sensors={self.sensors})'
+
+    def encode(self):
+        return {
+            'id': self.id,
+            'firstname': self.firstname,
+            'lastname': self.lastname,
+            'patientNurse': self.patient_verzorger,
+            'sensors': self.sensors,
+            'tags': self.tags,
+        }
+
 
 class PatientVerzorger(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -181,16 +193,21 @@ user_data = {
     'password': fields.String,
     'role': fields.String
 }
-patient_data = {
-    'id': fields.Integer,
-    'firstname': fields.String,
-    'lastname': fields.String
-}
+
 
 patient_verzorger_data = {
     'id': fields.Integer,
+    'patient_id': fields.String,
+    'verzorger_id': fields.String
+}
+
+patient_data = {
+    'id': fields.Integer,
     'firstname': fields.String,
-    'lastname': fields.String
+    'lastname': fields.String,
+    'sensors': fields.Nested(sensors_data),
+    'patient_verzorger': fields.Nested(patient_verzorger_data),
+    'tags': fields.Nested(tag_data)
 }
 
 user_login = {
@@ -308,7 +325,7 @@ class Patient(Resource):
                 result = Patients.query.filter_by(lastname=lastname).first()
                 if result != None:
                     return Response('Patient already added',401)
-            data = Patients(firstname=args['firstname'], lastname=args['lastname'])
+            data = Patients(firstname=firstname, lastname=lastname)
             db.session.add(data)
             db.session.commit()
             return Response(data, 201)
@@ -410,7 +427,7 @@ class Tag(Resource):
                 result = Tags.query.filter_by(patient_id=patient_id).first()
                 if result != None:
                     return Response('Patient is al gekoppeld met tag',401)
-            data = Tags(tag=args['tag'], patient_id=args['patient_id'])
+            data = Tags(tag=tag, patient_id=patient_id)
             db.session.add(data)
             db.session.commit()
             return Response(data, 201)
