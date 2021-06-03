@@ -3,10 +3,12 @@ import requests
 import time
 import sqlite3
 
-sensor_url = 'http://ronleon.nl/sensordata'
+sensordata_url = 'http://ronleon.nl/sensordata'
 verzorgers_url = 'http://ronleon.nl/users'
 login_url = 'http://ronleon.nl/login'
 patient_url = 'http://ronleon.nl/patients'
+sensor_url = 'http://ronleon.nl/sensor'
+tag_url = 'http://ronleon.nl/tag'
 
 #-----<   Sensor data test
 sensor_id = 1
@@ -19,7 +21,7 @@ activation_duration = round(endtime - starttime)
 
 sensordata = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
 
-requests.put(sensor_url, sensordata)
+requests.put(sensordata_url, sensordata)
 
 conn = sqlite3.connect('database.db')
 cursor = conn.cursor()
@@ -205,6 +207,16 @@ login3_data = {
 
 login3 = requests.post(login_url, json = login2_data, headers=headers)
 
+
+#------< tag tests
+
+data = {'tag':'1BBD2EE2',
+        'patient_id' : 1
+        }
+
+tag1 = requests.post(tag_url, json=data,headers=headers)
+#------>
+
 #------>
 passed = True
 
@@ -263,5 +275,10 @@ if patient2.status_code == 201:
     print("Patient2 test failed")
     passed = False
 
+if tag1.text != 'Patient is al gekoppeld met tag':
+    print('Tag1 test failed')
+    passed = False
+
 if passed:
     print("All tests passed succesfully")
+
