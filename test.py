@@ -36,7 +36,6 @@ new_id = last_sensordata[0]
 new_sensor_id = last_sensordata[1]
 new_time_activated = last_sensordata[2]
 new_time_deactivated = last_sensordata[3]
-new_tag = last_sensordata[4]
 new_activation_duration = last_sensordata[5]
 
 #----->
@@ -64,7 +63,7 @@ wrong_headers = {'x-access-tokens':'sdagfw424tg425'}
 
 
 #------< Patient data tests
-#tag already used
+
 patient1_data = {
             'firstname': 'Bart',
             'lastname': 'Klaassen',
@@ -209,12 +208,14 @@ login3 = requests.post(login_url, json = login2_data, headers=headers)
 
 
 #------< tag tests
-
-data = {'tag':'1BBD2EE2',
-        'patient_id' : 1
+data = {'id' : 1
         }
+tagdelete = requests.delete(tag_url, json=data,headers=headers)
 
-tag1 = requests.post(tag_url, json=data,headers=headers)
+
+tag = {'tag':'1BBD2EE2',
+        'patient_id': 1}
+tagadd = requests.post(tag_url, json=tag,headers=headers)
 #------>
 
 #------>
@@ -231,9 +232,6 @@ if datetime_string != new_time_activated:
     passed = False
 if enddatetime_string != new_time_deactivated:
     print(f"Time deactivated failed, endtime should be {enddatetime_string} but is {new_time_deactivated}")
-    passed = False
-if tag != new_tag:
-    print(f"Tag failed, tag should be {tag} but is {new_tag}")
     passed = False
 if activation_duration != new_activation_duration:
     print(f"Activation duration failed, should be {activation_duration} but is {new_activation_duration}")
@@ -275,8 +273,12 @@ if patient2.status_code == 201:
     print("Patient2 test failed")
     passed = False
 
-if tag1.text != 'Patient is al gekoppeld met tag':
-    print('Tag1 test failed')
+if tagdelete.status_code != 201:
+    print('tagdelete test failed')
+    passed = False
+
+if tagdelete.status_code != 201:
+    print('tagadd test failed')
     passed = False
 
 if passed:

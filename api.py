@@ -8,7 +8,7 @@ import os
 import re
 import bcrypt
 import string
-import random
+import random 
 from flask_cors import CORS
 from sqlalchemy.orm import backref
 
@@ -216,6 +216,7 @@ class SensorsData(Resource):
 class User(Resource):
     def __init__(self):
         schema = {
+            'id' : {'required': False, 'type':'integer'},
             'email': {'required': True, 'type': 'string'},
             'firstname': {'required': True, 'type': 'string'},
             'lastname': {'required': True, 'type': 'string'},
@@ -273,6 +274,18 @@ class User(Resource):
         else:
             return Response('missing fields', 400)
 
+    @token_required
+    @admin_required
+    def delete(self, current_user):
+        args = request.get_json(force=True)
+        user_id = args['id']
+        result = Users.query.filter_by(id=user_id).first()
+        if result != None:
+            db.session.delete(result)
+            db.session.commit()
+            return Response(result,201)
+        return Response('Dit id is niet geldig', 401)
+
     def check_mail(self, email):
         if(re.search(regex, email)):
             return 'Valid'
@@ -284,6 +297,7 @@ class User(Resource):
 class Patient(Resource):
     def __init__(self):
         schema = {
+            'id' : {'required': False, 'type':'integer'},
             'firstname': {'required': True, 'type': 'string'},
             'lastname': {'required': True, 'type': 'string'}
         }
@@ -314,6 +328,18 @@ class Patient(Resource):
             return Response(data, 201)
         else:
             return Response('missing fields', 400)
+    
+    @token_required
+    @admin_required
+    def delete(self, current_user):
+        args = request.get_json(force=True)
+        patient_id = args['id']
+        result = Patients.query.filter_by(id=patient_id).first()
+        if result != None:
+            db.session.delete(result)
+            db.session.commit()
+            return Response(result,201)
+        return Response('Dit id is niet geldig', 401)
 
 class PatientVerzorgers(Resource):
     def __init__(self):
@@ -352,6 +378,7 @@ class PatientVerzorgers(Resource):
 class Sensor(Resource):
     def __init__(self):
         schema = {
+            'id' : {'required': False, 'type':'integer'},
             'name': {'required': True, 'type': 'string'},
             'patient_id': {'required': True, 'type': 'integer'}
         }
@@ -383,9 +410,22 @@ class Sensor(Resource):
         else:
             return Response('missing fields', 400)
 
+    @token_required
+    @admin_required
+    def delete(self, current_user):
+        args = request.get_json(force=True)
+        sensor_id = args['id']
+        result = Sensors.query.filter_by(id=sensor_id).first()
+        if result != None:
+            db.session.delete(result)
+            db.session.commit()
+            return Response(result,201)
+        return Response('Dit id is niet geldig', 401)
+
 class Tag(Resource):
     def __init__(self):
         schema = {
+            'id': {'required': False, 'type': 'integer'},
             'tag': {'required': True, 'type': 'string'},
             'patient_id': {'required': True, 'type': 'integer'}
         }
@@ -416,6 +456,18 @@ class Tag(Resource):
             return Response(data, 201)
         else:
             return Response('missing fields', 400)
+
+    @token_required
+    @admin_required
+    def delete(self, current_user):
+        args = request.get_json(force=True)
+        tag_id = args['id']
+        result = Tags.query.filter_by(id=tag_id).first()
+        if result != None:
+            db.session.delete(result)
+            db.session.commit()
+            return Response(result,201)
+        return Response('Dit id is niet geldig', 401)
 
 class UserLogin(Resource):
     def __init__(self):
