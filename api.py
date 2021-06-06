@@ -25,6 +25,8 @@ db = SQLAlchemy(app)
 sensor = {}
 
 class SensorData(db.Model): 
+    """Model voor de tabel van sensordata
+    """
     id = db.Column(db.Integer, primary_key=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensors.id'))
     time_activated = db.Column(db.String)
@@ -36,6 +38,8 @@ class SensorData(db.Model):
         return f"Sensors(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
 
 class Users(db.Model):
+    """Model voor de tabel van users
+    """
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String)
     firstname = db.Column(db.String)
@@ -59,6 +63,8 @@ class Users(db.Model):
         }
 
 class Patients(db.Model):
+    """Model van tabel van patienten
+    """
     id = db.Column(db.Integer, primary_key=True)
     firstname = db.Column(db.String)
     lastname = db.Column(db.String)
@@ -70,6 +76,8 @@ class Patients(db.Model):
         return f'Patient(id={self.id}, firstname={self.firstname}, lastname={self.lastname}'
 
 class PatientVerzorger(db.Model):
+    """Model van koppeltabel tussen patienten en verzorgers
+    """
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
     verzorger_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -78,6 +86,8 @@ class PatientVerzorger(db.Model):
         return f'PatientVerzorger(id={self.id}, patient_id={self.patient_id}, verzorger_id={self.verzorger_id}'
 
 class Sensors(db.Model):
+    """Model van tabel van de sensoren
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
@@ -87,6 +97,8 @@ class Sensors(db.Model):
         return f'Sensors(id={self.id}, name={self.name}, patient_id={self.patient_id})'
 
 class Tags(db.Model):
+    """Model van tabel van de tags
+    """
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
@@ -96,6 +108,8 @@ class Tags(db.Model):
         return f'Tags(id={self.id}, tag={self.tag}, patient_id={self.patient_id})'
 
 def token_required(f):
+    """Decorator die de token van de user checkt
+    """
     @wraps(f)
     def decorator(*args, **kwargs):
         token = None
@@ -117,6 +131,8 @@ def token_required(f):
 
 
 def admin_required(f):
+    """Decorator die checkt of de user een admin is
+    """
     @wraps(f)
     @token_required
     def check_admin(current_user, *args, **kwargs):
@@ -199,6 +215,8 @@ user_login = {
 }
 
 class SensorsData(Resource):
+    """Class voor het handelen van sensordata requests
+    """
     @marshal_with(sensor_data)
     def get(self):
         result = SensorData.query.all()
@@ -214,6 +232,8 @@ class SensorsData(Resource):
 
 
 class User(Resource):
+    """Class voor het handelen van user requests
+    """
     def __init__(self):
         schema = {
             'id' : {'required': False, 'type':'integer'},
@@ -295,6 +315,8 @@ class User(Resource):
         return ''.join(random.choice(chars) for _ in range(size))
 
 class Patient(Resource):
+    """Class voor het handelen van patients requests
+    """
     def __init__(self):
         schema = {
             'id' : {'required': False, 'type':'integer'},
@@ -342,6 +364,8 @@ class Patient(Resource):
         return Response('Dit id is niet geldig', 401)
 
 class PatientVerzorgers(Resource):
+    """Class voor het handelen van verzorger patient koppel requests
+    """
     def __init__(self):
         schema = {
             'patient_id': {'required': True, 'type': 'integer'},
@@ -376,6 +400,8 @@ class PatientVerzorgers(Resource):
             return Response('missing fields', 400)
 
 class Sensor(Resource):
+    """Class voor het handelen van sensor requests
+    """
     def __init__(self):
         schema = {
             'id' : {'required': False, 'type':'integer'},
@@ -423,6 +449,8 @@ class Sensor(Resource):
         return Response('Dit id is niet geldig', 401)
 
 class Tag(Resource):
+    """Class voor het handelen van tag requests
+    """
     def __init__(self):
         schema = {
             'id': {'required': False, 'type': 'integer'},
@@ -470,6 +498,8 @@ class Tag(Resource):
         return Response('Dit id is niet geldig', 401)
 
 class UserLogin(Resource):
+    """Class voor het handelen van login requests
+    """
     def __init__(self):
         self.schema = {'email': {'required': True, 'type': 'string'}, 'password': {'required': True, 'type': 'string'}}
         self.v = Validator(self.schema)
