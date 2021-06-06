@@ -368,6 +368,7 @@ class PatientVerzorgers(Resource):
     """
     def __init__(self):
         schema = {
+            'id': {'required': False, 'type': 'integer'},
             'patient_id': {'required': True, 'type': 'integer'},
             'verzorger_id': {'required': True, 'type': 'integer'}
         }
@@ -398,6 +399,18 @@ class PatientVerzorgers(Resource):
             return Response(data, 201)
         else:
             return Response('missing fields', 400)
+
+    @token_required
+    @admin_required
+    def delete(self, current_user):
+        args = request.get_json(force=True)
+        tag_id = args['id']
+        result = PatientVerzorgers.query.filter_by(id=tag_id).first()
+        if result != None:
+            db.session.delete(result)
+            db.session.commit()
+            return Response(result,201)
+        return Response('Dit id is niet geldig', 401)
 
 class Sensor(Resource):
     """Class voor het handelen van sensor requests

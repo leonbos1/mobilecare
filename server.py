@@ -83,7 +83,10 @@ def threaded_client(connection): #door leon
                 enddatetime_string = end.strftime("%d/%m/%Y %H:%M:%S")
                 data = {'sensor_id':sensor_id, 'time_activated':datetime_string, 'time_deactivated':enddatetime_string, 'tag':tag, 'activation_duration':activation_duration}
                 response = requests.put(url, data)
-                print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
+                if response.status_code == 201:
+                    print(f'{sensor_id, datetime_string,enddatetime_string,tag, activation_duration} saved to database')
+                else:
+                    print("Failed to save data to database")
                 last_data = False
             first_end = False
     connection.close()
