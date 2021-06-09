@@ -36,7 +36,7 @@ def check_for_gone():
     """
     pass
 
-def get_patient(lastdata):
+def get_patient_id(lastdata):
     """Accepts sensor data en geeft patient_id die bij deze data hoort
     """
     url = 'http://ronleon.nl/sensor'
@@ -65,12 +65,17 @@ def main():
     while True:
         
         last_data = get_last_sensor_data()
-        patient_id = get_patient(last_data)
+        patient_id = get_patient_id(last_data)
         time_activated = last_data['time_activated']
         hours = convert_to_hours(time_activated)
 
         if check_hours(hours):
             alarm = True
+            reason = 'Activated tussen 22:00 en 06:00'
+
+        elif check_for_gone():
+            alarm = True
+            reason = 'patient heeft de achtertuin verlaten'
 
         if alarm:
             pass# hier moet iets met sockets gebeuren om het alarm te versturen
