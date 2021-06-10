@@ -8,7 +8,6 @@ def main():  #door leon
     HOST = "192.168.178.69" 
     PORT = 4000  
     threadcount = 0 
-    client_tag = 'DSFGHERH'  
     
     serversocket = socket.socket()
     try:
@@ -26,7 +25,7 @@ def main():  #door leon
         print('Thread Number: ' + str(threadcount))
     serversocket.close()            
 
-def threaded_client(connection): #door leon
+def threaded_client(connection):
     first = True
     last_data = False
     sensor_id = 0

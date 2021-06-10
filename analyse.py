@@ -3,6 +3,10 @@ import socket
 import time
 import json
 
+HOST = '127.0.0.1'
+PORT = 5000
+
+
 def get_last_sensor_data():
     """Haalt de laatste sensordata vanuit de api
     """
@@ -17,10 +21,12 @@ def get_last_sensor_data():
 
     return d[max_id]
     
+
 def convert_to_hours(datetime):
     """Accept een datetime string en convert dit naar hele uren
     """
     return datetime[11:13]
+
 
 def check_hours(hours):
     """Controleert of de uren op een raar tijdstip zijn
@@ -31,15 +37,25 @@ def check_hours(hours):
     elif hours < 7:
         return True
 
-def check_for_gone():
-    """controleert of de patient de achtertuin uit is
-    """
-    pass
 
-def get_patient_id(lastdata):
-    """Accepts sensor data en geeft patient_id die bij deze data hoort
+def check_for_gone():
+    """controleert of de patient lang de achtertuin uit is
     """
-    url = 'http://ronleon.nl/sensor'
+    return False #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
+         #sensor 3 is de uitgang van de achtertuin. Als deze dus 1x wordt geactivateerd weet je dat de patient de tuin uit is.
+         #Als die weer wordt geactivateerd is de patient weer in de tuin.
+
+
+def check_for_inactivity():
+    """Controleert of iemand lang op 1 plek stil zit. 
+    """
+    return False #gebruik hier activation_duration uit de database
+         #als dit getal heel groot is gaat er een alarm af
+
+
+def admin_login():
+    """functie om in te loggen als admin op de api
+    """
     login = 'http://ronleon.nl/login'
     loginjson =  {'email': 'admin@test.nl','password':'Wachtwoord123!'}
     login_response = requests.post(url=login, json=loginjson)
@@ -51,7 +67,15 @@ def get_patient_id(lastdata):
         token = 'invalid token'
 
     headers = {'x-access-tokens':token}
-    response = requests.get(url, headers=headers)
+    return headers
+
+
+def get_patient_id(lastdata):
+    """Accepts sensor data en geeft patient_id die bij deze data hoort
+    """
+    url = 'http://ronleon.nl/sensor'
+
+    response = requests.get(url, headers=admin_login()) #headers zijn nodig omdat alleen admins patienten mogen opvragen
 
     text = response.text
     sensor_id = lastdata['sensor_id']
@@ -61,6 +85,7 @@ def get_patient_id(lastdata):
             patient_id = i['patient_id']
     return patient_id
 
+
 def main():
     while True:
         
@@ -68,16 +93,23 @@ def main():
         patient_id = get_patient_id(last_data)
         time_activated = last_data['time_activated']
         hours = convert_to_hours(time_activated)
-
+        reason = 'geen alarm' #alleen voor debuggen nodig
+        alarm = False
         if check_hours(hours):
             alarm = True
             reason = 'Activated tussen 22:00 en 06:00'
 
         elif check_for_gone():
             alarm = True
-            reason = 'patient heeft de achtertuin verlaten'
+            reason = 'patient is een lange tijd uit de achtertuin'
 
+        elif check_for_inactivity():
+            alarm = True
+            reason = 'patient zit heel lang op 1 plek'
+        print(reason) # alleen voor debuggen nodig
         if alarm:
-            pass# hier moet iets met sockets gebeuren om het alarm te versturen
+            pass# hier moet via sockets verstuurd worden dat er een alarm is. het patient id en de reden moeten dan meegegeven worden.
+
+        
         time.sleep(1)
 main()
