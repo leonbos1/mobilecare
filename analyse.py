@@ -38,9 +38,24 @@ def check_hours(hours):
         return True
 
 
-def check_for_gone():
+def check_for_gone(count):
     """controleert of de patient lang de achtertuin uit is
     """
+    #Telt het aantal keer dat sensor gactiveerd is.
+    tell = 0
+    
+    while count > 0:
+        count -= 1
+        tell += 1
+    print(tell)
+    
+    #Als het getelde aantal op oneven staat, is de patient uit. Anders op in.
+    if tell % 2 == 1:
+        print("Uit")
+    else:
+        print("In")
+
+    
     return False #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
          #sensor 3 is de uitgang van de achtertuin. Als deze dus 1x wordt geactivateerd weet je dat de patient de tuin uit is.
          #Als die weer wordt geactivateerd is de patient weer in de tuin.
