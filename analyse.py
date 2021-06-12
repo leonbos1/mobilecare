@@ -41,6 +41,8 @@ def check_hours(hours):
 def check_for_gone(count):
     """controleert of de patient lang de achtertuin uit is
     """
+    sensor_id = lastdata['sensor_id']
+
     #Telt het aantal keer dat sensor gactiveerd is.
     tell = 0
     
@@ -55,17 +57,26 @@ def check_for_gone(count):
     else:
         print("In")
 
+    return check_for_gone(sensor_id)
+
     
-    return False #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
-         #sensor 3 is de uitgang van de achtertuin. Als deze dus 1x wordt geactivateerd weet je dat de patient de tuin uit is.
-         #Als die weer wordt geactivateerd is de patient weer in de tuin.
+    #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
+    #sensor 3 is de uitgang van de achtertuin. Als deze dus 1x wordt geactivateerd weet je dat de patient de tuin uit is.
+    #Als die weer wordt geactivateerd is de patient weer in de tuin.
 
 
 def check_for_inactivity():
     """Controleert of iemand lang op 1 plek stil zit. 
     """
-    return False #gebruik hier activation_duration uit de database
-         #als dit getal heel groot is gaat er een alarm af
+
+    last_data = get_last_sensordata()
+    activation_duration = last_data['activation_duration']
+
+    if activation_duration > 20:
+        return "Alarm"
+
+    #gebruik hier activation_duration uit de database
+    #als dit getal heel groot is gaat er een alarm af
 
 
 def admin_login():
@@ -123,6 +134,9 @@ def main():
             reason = 'patient zit heel lang op 1 plek'
         print(reason) # alleen voor debuggen nodig
         if alarm:
+            alarm = True
+            patient_id
+            reason = 'Er is iets met patient'
             pass# hier moet via sockets verstuurd worden dat er een alarm is. het patient id en de reden moeten dan meegegeven worden.
 
         
