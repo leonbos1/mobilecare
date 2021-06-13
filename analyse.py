@@ -10,7 +10,7 @@ PORT = 5000
 def get_last_sensor_data():
     """Haalt de laatste sensordata vanuit de api
     """
-    url = 'http://ronleon.nl/sensordata'
+    url = 'http://127.0.0.1:5000/sensordata'
     data = requests.get(url=url)
     text = data.text
     d = json.loads(text)
@@ -82,7 +82,7 @@ def check_for_inactivity():
 def admin_login():
     """functie om in te loggen als admin op de api
     """
-    login = 'http://ronleon.nl/login'
+    login = 'http://127.0.0.1:5000/login'
     loginjson =  {'email': 'admin@test.nl','password':'Wachtwoord123!'}
     login_response = requests.post(url=login, json=loginjson)
 
@@ -99,7 +99,7 @@ def admin_login():
 def get_patient_id(lastdata):
     """Accepts sensor data en geeft patient_id die bij deze data hoort
     """
-    url = 'http://ronleon.nl/sensor'
+    url = 'http://127.0.0.1:5000/sensor'
 
     response = requests.get(url, headers=admin_login()) #headers zijn nodig omdat alleen admins patienten mogen opvragen
 
