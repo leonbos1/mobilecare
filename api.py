@@ -544,6 +544,6 @@ api.add_resource(Sensor, "/sensor")
 api.add_resource(Tag, "/tag")
 
 if __name__ == '__main__':
-    app.run(host='192.168.178.69', port=80, debug=True)
+    app.run(port=5000, debug=True)
 
 
