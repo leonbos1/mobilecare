@@ -38,26 +38,25 @@ def check_hours(hours):
         return True
 
 
+sensor_id = lastdata['sensor_id']
+
 def check_for_gone(count):
     """controleert of de patient lang de achtertuin uit is
     """
-    sensor_id = lastdata['sensor_id']
-
     #Telt het aantal keer dat sensor gactiveerd is.
     tell = 0
-    
+        
     while count > 0:
         count -= 1
         tell += 1
-    print(tell)
-    
+        
     #Als het getelde aantal op oneven staat, is de patient uit. Anders op in.
     if tell % 2 == 1:
-        print("Uit")
+        return False #Als patient uit is.
     else:
-        print("In")
+        return True #Als patient in is.
 
-    return check_for_gone(sensor_id)
+print(check_for_gone(sensor_id))
 
     
     #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
@@ -73,7 +72,9 @@ def check_for_inactivity():
     activation_duration = last_data['activation_duration']
 
     if activation_duration > 20:
-        return "Alarm"
+        return True #Alarm
+    else:
+        return False #Geen alarm
 
     #gebruik hier activation_duration uit de database
     #als dit getal heel groot is gaat er een alarm af
