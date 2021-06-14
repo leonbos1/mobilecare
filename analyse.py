@@ -37,7 +37,7 @@ def check_hours(hours):
     elif hours < 7:
         return True
 
-
+last_data = get_last_sensor_data()
 sensor_id = lastdata['sensor_id']
 
 def check_for_gone(count):
