@@ -2,10 +2,14 @@ import requests
 import socket
 import time
 import json
+from datetime import datetime
+
 
 HOST = '127.0.0.1'
-PORT = 5000
+PORT = 4000
 
+left_garden = False
+last_sensor_id = 0
 
 def get_last_sensor_data():
     """Haalt de laatste sensordata vanuit de api
@@ -28,6 +32,15 @@ def convert_to_hours(datetime):
     return datetime[11:13]
 
 
+def convert_to_unix(datetimestring):
+    """accepts een datetime string en convert naar unix
+    """
+    format = "%d/%m/%Y %H:%M:%S"
+    datetime_unix = datetime.strptime(datetimestring, format)
+    unix_time = datetime.timestamp(datetime_unix)*1000
+    return unix_time
+
+
 def check_hours(hours):
     """Controleert of de uren op een raar tijdstip zijn
     """
@@ -37,47 +50,31 @@ def check_hours(hours):
     elif hours < 7:
         return True
 
-last_data = get_last_sensor_data()
-sensor_id = lastdata['sensor_id']
-
-def check_for_gone(count):
+def check_for_gone():
     """controleert of de patient lang de achtertuin uit is
     """
-    #Telt het aantal keer dat sensor gactiveerd is.
-    tell = 0
-        
-    while count > 0:
-        count -= 1
-        tell += 1
-        
-    #Als het getelde aantal op oneven staat, is de patient uit. Anders op in.
-    if tell % 2 == 1:
-        return False #Als patient uit is.
-    else:
-        return True #Als patient in is.
+    last_data = get_last_sensor_data()
+    sensor_id = last_data['sensor_id']
 
-print(check_for_gone(sensor_id))
+    unix_time_activated = convert_to_unix(last_data['time_activated'])
+    now = datetime.now()
+    time_now = now.strftime("%d/%m/%Y %H:%M:%S")
+    unix_time_now = convert_to_unix(time_now)
+    time_difference = unix_time_now - unix_time_activated
+    
+    if sensor_id ==3 and time_difference > 2000000:
+        return True
 
     
-    #hier moet een functie komen die controleert of iemand een lange periode uit de achtertuin is. 
-    #sensor 3 is de uitgang van de achtertuin. Als deze dus 1x wordt geactivateerd weet je dat de patient de tuin uit is.
-    #Als die weer wordt geactivateerd is de patient weer in de tuin.
-
-
 def check_for_inactivity():
     """Controleert of iemand lang op 1 plek stil zit. 
     """
 
-    last_data = get_last_sensordata()
+    last_data = get_last_sensor_data()
     activation_duration = last_data['activation_duration']
 
-    if activation_duration > 20:
-        return True #Alarm
-    else:
-        return False #Geen alarm
-
-    #gebruik hier activation_duration uit de database
-    #als dit getal heel groot is gaat er een alarm af
+    if activation_duration > 1600:
+        return True 
 
 
 def admin_login():
@@ -114,14 +111,20 @@ def get_patient_id(lastdata):
 
 
 def main():
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print('Socket created')
+    s.connect((HOST, PORT))
+    print('Connection made')
+
     while True:
-        
         last_data = get_last_sensor_data()
         patient_id = get_patient_id(last_data)
         time_activated = last_data['time_activated']
         hours = convert_to_hours(time_activated)
-        reason = 'geen alarm' #alleen voor debuggen nodig
+        reason = 'geen alarm'
         alarm = False
+
         if check_hours(hours):
             alarm = True
             reason = 'Activated tussen 22:00 en 06:00'
@@ -133,13 +136,13 @@ def main():
         elif check_for_inactivity():
             alarm = True
             reason = 'patient zit heel lang op 1 plek'
-        print(reason) # alleen voor debuggen nodig
-        if alarm:
-            alarm = True
-            patient_id
-            reason = 'Er is iets met patient'
-            pass# hier moet via sockets verstuurd worden dat er een alarm is. het patient id en de reden moeten dan meegegeven worden.
 
-        
+        if alarm:
+            data = {'patient_id':patient_id,
+                    'reason': reason}
+            json_data = json.dumps(data)
+            s.send(bytes(json_data, "utf-8"))
+            print(f'send {json_data}')
         time.sleep(1)
+
 main()
