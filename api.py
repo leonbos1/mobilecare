@@ -422,7 +422,7 @@ class PatientVerzorgers(Resource):
     def delete(self, current_user):
         args = request.get_json(force=True)
         tag_id = args['id']
-        result = PatientVerzorgers.query.filter_by(id=tag_id).first()
+        result = PatientVerzorger.query.filter_by(id=tag_id).first()
         if result != None:
             db.session.delete(result)
             db.session.commit()
@@ -524,7 +524,7 @@ class Tag(Resource):
         if result != None:
             db.session.delete(result)
             db.session.commit()
-            return Response(result,201)
+            return Response(result, 201)
         return Response('Dit id is niet geldig', 401)
 
 class UserLogin(Resource):
