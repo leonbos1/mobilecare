@@ -257,7 +257,7 @@ class User(Resource):
             'email': {'required': True, 'type': 'string'},
             'firstname': {'required': True, 'type': 'string'},
             'lastname': {'required': True, 'type': 'string'},
-            'password': {'required': True, 'type': 'string'},
+            'password': {'required': False, 'type': 'string'},
             'role': {'required': True, 'type': 'string'}
         }
         self.v = Validator(schema)
@@ -310,6 +310,33 @@ class User(Resource):
             return Response(data, 201)
         else:
             return Response('missing fields', 400)
+
+    @token_required
+    @admin_required
+    def put(self, current_user):
+        args = request.get_json(force=True)
+        if current_user.v.validate(args):
+            user = Users.query.filter_by(id=args['id']).first()
+            if user == None:
+                abort(401, message='User does not exist')
+
+            email = args['email']
+            if email != user.email:
+                email_result = Users.query.filter_by(email=email).first()
+                if email_result != None:
+                    abort(401, message = 'Email is already taken')
+                if current_user.check_mail(email) != 'Valid':
+                    abort(401, message = 'Invalid email')
+
+            user.email = email
+            user.firstname = args['firstname']
+            user.lastname = args['lastname']
+            user.role = args['role']
+            db.session.commit()
+            return Response(user, 201)
+        return Response('Missing fields', 401)
+
+
 
     @token_required
     @admin_required
