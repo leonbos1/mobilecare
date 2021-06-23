@@ -25,6 +25,8 @@ db = SQLAlchemy(app)
 
 sensor = {}
 
+user = {}
+
 class SensorData(db.Model): 
     """Model voor de tabel van sensordata
     """
@@ -36,7 +38,7 @@ class SensorData(db.Model):
     activation_duration = db.Column(db.Integer)
 
     def __repr__(self):
-        return f"Sensors(id={self.id}, sensor_id={self.sensor_id}, time_activated={self.time_activated}, time_deactivated={self.time_deactivated}, tag={self.tag}, activation_duration={self.activation_duration})"
+        return f"Sensors(id={self.id}, sensorId={self.sensor_id}, timeActivated={self.time_activated}, timeDeactivated={self.time_deactivated}, tag={self.tag}, activationDuration={self.activation_duration})"
 
 class Users(db.Model):
     """Model voor de tabel van users
@@ -124,7 +126,9 @@ def token_required(f):
     """
     @wraps(f)
     def decorator(*args, **kwargs):
+        global user
         token = None
+        current_user = None
 
         if 'x-access-tokens' in request.headers:
             token = request.headers['x-access-tokens']
@@ -135,6 +139,7 @@ def token_required(f):
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = Users.query.filter_by(public_id=data['public_id']).first()
+            user = current_user
         except:
             abort(401)
 
@@ -191,7 +196,8 @@ sensor_data = {
 sensors_data = {
     'id': fields.Integer,
     'name': fields.String,
-    'patient_id' : fields.Integer
+    'patient_id' : fields.Integer,
+    'sensor_data': fields.Nested(sensor_data)
 }
 
 tag_data = {
@@ -371,9 +377,11 @@ class Patient(Resource):
 
     @marshal_with(patient_data)
     @token_required
-    @admin_required
     def get(self, current_user):
-        result = Patients.query.all()
+        if user.role == 'admin':
+            result = Patients.query.all()
+        else:
+            result = Patients.query.join(Patients.patient_verzorger, aliased=True).filter_by(verzorger_id=user.id).all()
         return result
 
     @token_required

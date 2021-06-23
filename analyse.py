@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 
-HOST = '127.0.0.1'
+HOST = '192.168.1.107'
 PORT = 4000
 
 left_garden = False

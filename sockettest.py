@@ -1,36 +1,16 @@
-import socket
-import _thread
-import json
+import asyncio
+import websockets
 
-HOST = '127.0.0.1'
-PORT = 4000
-def main():
-    while True:
-        serversocket = socket.socket()
-        try:
-            serversocket.bind((HOST,PORT))
-        except socket.error as e:
-            print(str(e))
-        
-        print("Waiting for connections")
-        serversocket.listen(5)
-        while True:
-            
+async def echo(websocket, path):
 
-            Client, address = serversocket.accept()
-            print('Connected to: ' + address[0] + ':' + str(address[1]))
-            _thread.start_new_thread(threaded_client, (Client, ))
+    async for message in websocket:
+        if path.replace('/', '') == '2':
+            await websocket.send(f'{message}')
+            await websocket.send(f'data van de server')
 
-                 
-def threaded_client(connection):
-    while True:
- 
-        data = connection.recv(1024)
-        message = data.decode("utf-8")
-        print("Received data: ", message)
-        json_data = json.loads(message)
-        print(f"patient is {json_data['patient_id']}")
-        print(f"reason is {json_data['reason']}")
 
-if __name__ == '__main__':
-    main()
+start_server = websockets.serve(echo, '127.0.0.1', 4000)
+
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
+
