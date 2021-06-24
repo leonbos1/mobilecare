@@ -12,6 +12,7 @@ import string
 import random 
 from flask_cors import CORS
 from sqlalchemy.orm import backref
+import asyncio
 
 
 app = Flask(__name__)
@@ -27,7 +28,7 @@ sensor = {}
 
 user = {}
 
-class SensorData(db.Model): 
+class SensorData(db.Model):
     """Model voor de tabel van sensordata
     """
     id = db.Column(db.Integer, primary_key=True)
@@ -51,7 +52,7 @@ class Users(db.Model):
     password = db.Column(db.String)
     role = db.Column(db.String)
     patient_verzorger = db.relationship('PatientVerzorger', backref = 'PatientVerzorger_Users')
-    
+
     def __repr__(self):
         return f'Gebruiker(id={self.id}, public_id={self.public_id}, firstname={self.firstname}, lastname={self.lastname}, email={self.email}, password={self.password}), role={self.role}'
 
@@ -95,7 +96,7 @@ class PatientVerzorger(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
     verzorger_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    
+
     def __repr__(self):
         return f'PatientVerzorger(id={self.id}, patient_id={self.patient_id}, verzorger_id={self.verzorger_id}'
 
@@ -106,7 +107,7 @@ class Sensors(db.Model):
     name = db.Column(db.String)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
     sensor_data = db.relationship('SensorData', backref = 'SensorData_Sensors')
-    
+
     def __repr__(self):
         return f'Sensors(id={self.id}, name={self.name}, patient_id={self.patient_id})'
 
@@ -117,7 +118,7 @@ class Tags(db.Model):
     tag = db.Column(db.String)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'))
     sensor_data = db.relationship('SensorData', backref = 'SensorData_Tags')
-    
+
     def __repr__(self):
         return f'Tags(id={self.id}, tag={self.tag}, patient_id={self.patient_id})'
 
@@ -338,6 +339,23 @@ class User(Resource):
             user.firstname = args['firstname']
             user.lastname = args['lastname']
             user.role = args['role']
+            if '$2b$' not in args['password']:
+                password = args['password']
+                if len(password) < 10:
+                    abort(401, message = 'Password is too short')
+                weird_char = False
+                number = False
+                hoofdletter = False
+                for element in password:
+                    if element in '~!@#$%^&*()_+=-,.<>/?;:"':
+                        weird_char = True
+                    if element in '0123456789':
+                        number = True
+                    if element in 'QWERTYUIOPASDFGHJKLZXCVBNM':
+                        hoofdletter = True
+                if not weird_char or not number or not hoofdletter:
+                    abort(401, message = 'Password does not meet security requirements')
+                user.password = bcrypt.hashpw(args['password'].encode('utf-8'), salt=bcrypt.gensalt())
             db.session.commit()
             return Response(user, 201)
         return Response('Missing fields', 401)
